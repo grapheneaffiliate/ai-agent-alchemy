@@ -351,3 +351,30 @@ async def get_crawl4ai() -> Crawl4AIPlugin:
     if _crawl4ai_instance is None:
         _crawl4ai_instance = Crawl4AIPlugin()
     return _crawl4ai_instance
+
+
+# MCP Plugin Interface
+async def execute(server: str, tool_name: str, args: Dict[str, Any]) -> Dict[str, Any]:
+    """Execute Crawl4AI plugin commands via MCP interface."""
+    try:
+        crawl4ai = await get_crawl4ai()
+
+        # Handle MCP-configured tool names
+        if tool_name == 'crawl-url':
+            return await crawl4ai.crawl_url(
+                url=args.get('url', ''),
+                css_selector=args.get('css_selector'),
+                extract_markdown=True
+            )
+
+        elif tool_name == 'ask-question':
+            return await crawl4ai.ask_question(
+                url=args.get('url', ''),
+                question=args.get('question', '')
+            )
+
+        else:
+            return {"status": "error", "error": f"Unknown tool: {tool_name}"}
+
+    except Exception as e:
+        return {"status": "error", "error": str(e)}

@@ -18,28 +18,30 @@ async def test_news_plugin():
     print("\n" + "="*60)
     print("Testing News Plugin (fetch-news)")
     print("="*60)
-    
+
     executor = PluginExecutor()
-    
+
     tests = [
         ('robotics', 5),
         ('seattle', 5),
         ('kansas city', 5),
     ]
-    
+
     for topic, max_articles in tests:
-        result = await executor.execute('news', 'get_news', {
+        result = await executor.execute('news', 'get-news', {
             'topic': topic,
             'max_articles': max_articles
         })
-        
-        if result.get('status') == 'success':
+
+        if result and result.get('status') == 'success':
             articles = result['result'].get('articles', [])
             print(f"✅ {topic:20} → {len(articles)} articles")
             if articles:
                 print(f"   First: {articles[0]['headline'][:60]}...")
-        else:
+        elif result:
             print(f"❌ {topic:20} → Error: {result.get('error')}")
+        else:
+            print(f"❌ {topic:20} → Result is None")
 
 
 async def test_browser_plugin():
@@ -61,22 +63,36 @@ async def test_browser_plugin():
         print(f"❌ Navigate: {result.get('error')}")
     
     # Test extract
-    print("\n2. Testing browser-extract-smart...")
-    result = await executor.execute('browser', 'extract_content_smart', {})
-    if result.get('status') == 'success':
-        content = result['result']
-        print(f"✅ Extract: {len(content.get('text', ''))} chars extracted")
-    else:
-        print(f"❌ Extract: {result.get('error')}")
-    
+    print("\n2. Testing extract-text...")
+    try:
+        result = await executor.execute('browser', 'extract-text', {'selector': 'h1'})
+        if result and result.get('status') == 'success':
+            if isinstance(result['result'], dict) and 'text' in result['result']:
+                print(f"✅ Extract Text: {result['result']['text'][:50]}...")
+            else:
+                print(f"✅ Extract Text: Got result - {str(result['result'])[:100]}")
+        else:
+            print(f"❌ Extract Text: {result.get('error') if result else 'No result returned'}")
+    except Exception as e:
+        print(f"❌ Extract Text: Test error - {str(e)}")
+
     # Test get links
-    print("\n3. Testing browser-get-links...")
-    result = await executor.execute('browser', 'get_links', {})
+    print("\n3. Testing get-links...")
+    result = await executor.execute('browser', 'get-links', {})
     if result.get('status') == 'success':
         links = result['result']
         print(f"✅ Get Links: {len(links)} links found")
     else:
         print(f"❌ Get Links: {result.get('error')}")
+
+    # Test get news smart
+    print("\n4. Testing get-news-smart...")
+    result = await executor.execute('browser', 'get-news-smart', {'topic': 'ai', 'max_articles': 3})
+    if result.get('status') == 'success':
+        articles = result['result'].get('results', [])
+        print(f"✅ Get News Smart: {len(articles)} articles found")
+    else:
+        print(f"❌ Get News Smart: {result.get('error')}")
 
 
 async def test_crawl4ai_plugin():
@@ -84,13 +100,13 @@ async def test_crawl4ai_plugin():
     print("\n" + "="*60)
     print("Testing Crawl4AI Plugin")
     print("="*60)
-    
+
     executor = PluginExecutor()
-    
+
     # Test basic crawl
-    print("\n1. Testing crawl...")
-    result = await executor.execute('crawl4ai', 'crawl_url', {
-        'url': 'https://example.com'
+    print("\n1. Testing crawl-url...")
+    result = await executor.execute('crawl4ai', 'crawl-url', {
+        'url': 'https://news.ycombinator.com'
     })
     if result.get('status') == 'success':
         markdown = result['result'].get('markdown', '')
@@ -108,17 +124,23 @@ async def test_time_plugin():
     executor = PluginExecutor()
     
     tests = [
-        ('get_current_time', 'get-time'),
-        ('get_current_date', 'get-date'),
-        ('get_day_info', 'get-day-info'),
+        ('get-current-time', 'full timestamp'),
+        ('get-current-date', 'formatted date'),
+        ('get-day-info', 'comprehensive info'),
     ]
-    
-    for func_name, tool_name in tests:
-        result = await executor.execute('time', func_name, {})
+
+    for tool_name, description in tests:
+        result = await executor.execute('time', tool_name, {})
         if result.get('status') == 'success':
-            print(f"✅ {tool_name:20} → {result['result']}")
+            data = result['result']
+            # Handle different return formats
+            if isinstance(data, dict):
+                print(f"✅ {tool_name:20} → {description} returned")
+            else:
+                display = str(data)[:80]
+                print(f"✅ {tool_name:20} → {display}")
         else:
-            print(f"❌ {tool_name:20} → Error")
+            print(f"❌ {tool_name:20} → Error: {result.get('error')}")
 
 
 async def test_react_integration():

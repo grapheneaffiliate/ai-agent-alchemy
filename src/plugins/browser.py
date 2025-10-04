@@ -398,41 +398,73 @@ async def execute(server: str, tool_name: str, args: Dict[str, Any]) -> Dict[str
     """Execute browser plugin commands via MCP interface."""
     try:
         browser = await get_browser(headless=args.get('headless', True))
-        
-        if tool_name == 'browser_navigate':
+
+        # Handle MCP-configured tool names
+        if tool_name == 'navigate':
             return await browser.navigate(args.get('url', ''))
-        
+
+        elif tool_name == 'screenshot':
+            return await browser.screenshot(args.get('path'))
+
+        elif tool_name == 'click':
+            return await browser.click(args.get('selector', ''))
+
+        elif tool_name == 'fill':
+            return await browser.fill(
+                args.get('selector', ''),
+                args.get('text', '')
+            )
+
+        elif tool_name == 'extract-text':
+            selector = args.get('selector', '')
+            text = await browser.extract_text(selector)
+            return {"status": "success", "text": text, "selector": selector}
+
+        elif tool_name == 'get-links':
+            links = await browser.get_links()
+            return {"status": "success", "links": links}
+
+        elif tool_name == 'get-news-smart':
+            return await browser.get_news_smart(
+                topic=args.get('topic', 'ai'),
+                max_articles=args.get('max_articles', 5)
+            )
+
+        # Legacy/backward compatibility tool names
+        elif tool_name == 'browser_navigate':
+            return await browser.navigate(args.get('url', ''))
+
         elif tool_name == 'browser_screenshot':
             return await browser.screenshot(args.get('path'))
-        
+
         elif tool_name == 'browser_get_content':
             content = await browser.get_content()
             return {"status": "success", "content": content}
-        
+
         elif tool_name == 'browser_extract_content':
             return await browser.extract_content_smart()
-        
+
         elif tool_name == 'browser_get_news':
             return await browser.get_news_smart(
                 topic=args.get('topic', 'ai'),
                 max_articles=args.get('max_articles', 5)
             )
-        
+
         elif tool_name == 'browser_click':
             return await browser.click(args.get('selector', ''))
-        
+
         elif tool_name == 'browser_fill':
             return await browser.fill(
                 args.get('selector', ''),
                 args.get('text', '')
             )
-        
+
         elif tool_name == 'browser_close':
             await close_browser()
             return {"status": "success", "message": "Browser closed"}
-        
+
         else:
             return {"status": "error", "error": f"Unknown tool: {tool_name}"}
-            
+
     except Exception as e:
         return {"status": "error", "error": str(e)}

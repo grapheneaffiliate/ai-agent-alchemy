@@ -347,7 +347,15 @@ async def execute(server: str, tool_name: str, args: Dict[str, Any]) -> Dict[str
     try:
         news_fetch = get_news_fetch()
 
-        if tool_name == 'fetch_topic_news':
+        # Handle MCP-configured tool names
+        if tool_name == 'get-news':
+            return await news_fetch.get_news(
+                topic=args.get('topic', 'general'),
+                max_articles=args.get('max_articles', 5)
+            )
+
+        # Legacy/backward compatibility
+        elif tool_name == 'fetch_topic_news':
             return await news_fetch.get_news(
                 topic=args.get('topic', 'general'),
                 max_articles=args.get('limit', 5)
