@@ -1,0 +1,40 @@
+# Environment variables and secrets
+.env
+.env.local
+.env.*.local
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# IDE settings
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Test outputs
+test_output.txt
+test_crawl_output.md
+
+# Virtual environments
+venv/
+.venv/
+ENV/
+
+# Session data
+.memory/
+
+# Sensitive files
+.env.example
