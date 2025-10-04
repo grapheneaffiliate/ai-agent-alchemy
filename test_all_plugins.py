@@ -104,8 +104,8 @@ async def test_crawl4ai_plugin():
     executor = PluginExecutor()
 
     # Test basic crawl
-    print("\n1. Testing crawl-url...")
-    result = await executor.execute('crawl4ai', 'crawl-url', {
+    print("\n1. Testing crawl_url...")
+    result = await executor.execute('crawl4ai', 'crawl_url', {
         'url': 'https://news.ycombinator.com'
     })
     if result.get('status') == 'success':

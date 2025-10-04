@@ -85,3 +85,34 @@ def get_time_plugin(timezone: str = "America/New_York") -> TimePlugin:
     if not _time_instance:
         _time_instance = TimePlugin(timezone)
     return _time_instance
+
+
+# MCP Plugin Interface
+async def execute(server: str, tool_name: str, args: Dict[str, Any]) -> Dict[str, Any]:
+    """Execute time plugin commands via MCP interface."""
+    try:
+        time_plugin = get_time_plugin()
+
+        # Handle MCP-configured tool names
+        if tool_name == 'get-current-time':
+            result = time_plugin.get_current_time()
+            return {"status": "success", "result": result}
+
+        elif tool_name == 'get-current-date':
+            result = time_plugin.get_current_date()
+            return {"status": "success", "result": result}
+
+        elif tool_name == 'get-day-info':
+            result = time_plugin.get_day_info()
+            return {"status": "success", "result": result}
+
+        elif tool_name == 'format-datetime':
+            format_string = args.get('format_string', '%Y-%m-%d %H:%M:%S')
+            result = time_plugin.format_datetime(format_string)
+            return {"status": "success", "result": result}
+
+        else:
+            return {"status": "error", "error": f"Unknown tool: {tool_name}"}
+
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
