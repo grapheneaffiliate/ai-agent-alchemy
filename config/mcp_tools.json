@@ -1,0 +1,327 @@
+{
+  "servers": [
+    {
+      "name": "filesystem",
+      "tools": [
+        {
+          "name": "read-file",
+          "tool_name": "read_file",
+          "description": "Read the contents of a file",
+          "args_schema": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "description": "Path to the file to read (relative to cwd)"
+              },
+              "task_progress": {
+                "type": "string",
+                "description": "Optional task progress checklist"
+              }
+            },
+            "required": ["path"]
+          }
+        },
+        {
+          "name": "list-dir",
+          "tool_name": "list_files",
+          "description": "List files and directories in a path",
+          "args_schema": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "description": "Directory path to list (default: current)",
+                "default": "."
+              },
+              "recursive": {
+                "type": "boolean",
+                "description": "List recursively",
+                "default": false
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "shell",
+      "tools": [
+        {
+          "name": "run-command",
+          "tool_name": "execute_command",
+          "description": "Execute a CLI command",
+          "args_schema": {
+            "type": "object",
+            "properties": {
+              "command": {
+                "type": "string",
+                "description": "The command to execute"
+              },
+              "requires_approval": {
+                "type": "boolean",
+                "description": "Needs user approval",
+                "default": true
+              },
+              "task_progress": {
+                "type": "string",
+                "description": "Optional task progress"
+              }
+            },
+            "required": ["command"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "time",
+      "tools": [
+        {
+          "name": "get-current-time",
+          "description": "Get the current time",
+          "parameters": {
+            "format": "string"
+          }
+        },
+        {
+          "name": "get-current-date",
+          "description": "Get the current date",
+          "parameters": {
+            "format": "string"
+          }
+        },
+        {
+          "name": "get-day-info",
+          "description": "Get day info",
+          "parameters": {}
+        },
+        {
+          "name": "format-datetime",
+          "description": "Format datetime",
+          "parameters": {
+            "format_string": "string"
+          }
+        }
+      ]
+    },
+    {
+      "name": "browser",
+      "tools": [
+        {
+          "name": "navigate",
+          "description": "Navigate to URL",
+          "parameters": {
+            "url": "string"
+          }
+        },
+        {
+          "name": "screenshot",
+          "description": "Take screenshot",
+          "parameters": {
+            "path": "string"
+          }
+        },
+        {
+          "name": "click",
+          "description": "Click element",
+          "parameters": {
+            "selector": "string"
+          }
+        },
+        {
+          "name": "fill",
+          "description": "Fill field",
+          "parameters": {
+            "selector": "string",
+            "text": "string"
+          }
+        },
+        {
+          "name": "extract-text",
+          "description": "Extract text",
+          "parameters": {
+            "selector": "string"
+          }
+        },
+        {
+          "name": "get-links",
+          "description": "Get links",
+          "parameters": {}
+        },
+        {
+          "name": "get-news-smart",
+          "description": "Get news smart",
+          "parameters": {
+            "topic": "string",
+            "max_articles": "integer"
+          }
+        }
+      ]
+    },
+    {
+      "name": "news",
+      "tools": [
+        {
+          "name": "get-news",
+          "description": "Fetch news articles",
+          "parameters": {
+            "topic": "string",
+            "max_articles": "integer"
+          }
+        }
+      ]
+    },
+    {
+      "name": "crawl4ai",
+      "tools": [
+        {
+          "name": "crawl-url",
+          "description": "Crawl URL",
+          "parameters": {
+            "url": "string",
+            "css_selector": "string"
+          }
+        },
+        {
+          "name": "ask-question",
+          "description": "Ask question on page",
+          "parameters": {
+            "url": "string",
+            "question": "string"
+          }
+        }
+      ]
+    },
+    {
+      "name": "search",
+      "tools": [
+        {
+          "name": "web_search",
+          "description": "Perform web search with paraphrased results and citations",
+          "parameters": {
+            "query": "string",
+            "num_results": "integer"
+          }
+        }
+      ]
+    },
+    {
+      "name": "leann",
+      "tools": [
+        {
+          "name": "build-index",
+          "tool_name": "leann_build_index",
+          "description": "Build a LEANN vector index from documents",
+          "args_schema": {
+            "type": "object",
+            "properties": {
+              "index_name": {
+                "type": "string",
+                "description": "Name for the index to create"
+              },
+              "docs": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": "List of document paths to index"
+              }
+            },
+            "required": ["index_name", "docs"]
+          }
+        },
+        {
+          "name": "search-documents",
+          "tool_name": "leann_search",
+          "description": "Search through indexed documents using semantic search",
+          "args_schema": {
+            "type": "object",
+            "properties": {
+              "index_name": {
+                "type": "string",
+                "description": "Name of the index to search in"
+              },
+              "query": {
+                "type": "string",
+                "description": "Search query in natural language"
+              },
+              "top_k": {
+                "type": "integer",
+                "description": "Number of top results to return",
+                "default": 5
+              }
+            },
+            "required": ["index_name", "query"]
+          }
+        },
+        {
+          "name": "ask-question",
+          "tool_name": "leann_ask",
+          "description": "Ask questions about indexed documents with AI-generated responses",
+          "args_schema": {
+            "type": "object",
+            "properties": {
+              "index_name": {
+                "type": "string",
+                "description": "Name of the index to query"
+              },
+              "question": {
+                "type": "string",
+                "description": "Question to ask about the indexed documents"
+              },
+              "top_k": {
+                "type": "integer",
+                "description": "Number of documents to retrieve for context",
+                "default": 3
+              }
+            },
+            "required": ["index_name", "question"]
+          }
+        },
+        {
+          "name": "list-indexes",
+          "tool_name": "leann_list",
+          "description": "List all available LEANN indexes",
+          "args_schema": {
+            "type": "object",
+            "properties": {}
+          }
+        },
+        {
+          "name": "analyze-codebase",
+          "tool_name": "analyze_codebase_intelligence",
+          "description": "Perform advanced semantic analysis of codebase architecture, functions, classes, and patterns",
+          "args_schema": {
+            "type": "object",
+            "properties": {
+              "index_name": {
+                "type": "string",
+                "description": "Name of the index to analyze (default: agent-code)",
+                "default": "agent-code"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "enhanced-news",
+      "tools": [
+        {
+          "name": "get-enhanced-news",
+          "description": "Get enhanced news with dynamic source discovery, intelligent processing, and rich dashboard generation",
+          "parameters": {
+            "topic": "string",
+            "max_articles": "integer"
+          }
+        },
+        {
+          "name": "discover-sources",
+          "description": "Dynamically discover authoritative news sources for any topic",
+          "parameters": {
+            "topic": "string",
+            "max_sources": "integer"
+          }
+        }
+      ]
+    }
+  ]
+}
