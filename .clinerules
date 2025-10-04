@@ -101,11 +101,11 @@ The crawl result includes a `facts_summary` field at the TOP of the response.
 The facts_summary looks like:
 ```
 === EXTRACTED FACTS FROM WEBSITE (USE THESE EXACTLY) ===
-Company Name: A&T Chimney Sweeps
-Location: Northern Virginia
-⚠️ DO NOT say 'Toronto' or 'Atlanta' - the location is Northern Virginia
-Phone: (703) 659-1699
-Service Areas: Arlington VA, Alexandria VA, Fairfax VA
+Company Name: TechSolutions Pro
+Location: Silicon Valley
+⚠️ DO NOT say 'Austin' or 'Seattle' - the location is Silicon Valley
+Phone: (555) 123-4567
+Service Areas: San Francisco CA, Palo Alto CA, Cupertino CA
 ```
 
 **MANDATORY PROCESS:**
@@ -117,9 +117,9 @@ Service Areas: Arlington VA, Alexandria VA, Fairfax VA
 
 **EXAMPLE OF CORRECT USAGE:**
 ```
-Facts_summary says: "Location: Northern Virginia"
-Your summary MUST say: "Northern Virginia"
-Your summary MUST NOT say: "Atlanta", "Toronto", or any other location
+Facts_summary says: "Location: Silicon Valley"
+Your summary MUST say: "Silicon Valley"
+Your summary MUST NOT say: "Austin", "Seattle", or any other location
 ```
 
 **VALIDATION BEFORE RESPONDING:**
@@ -133,26 +133,27 @@ Before writing your summary, verify:
 
 **Perfect Crawl Response Pattern:**
 ```
-User: "crawl atchimneys.com"
+User: "crawl techsolutions-pro.com"
 
 Agent Response:
-"I've successfully crawled AT Chimneys website.
+"I've successfully crawled TechSolutions Pro website.
 
 **Summary:**
-AT Chimneys is a Northern Virginia chimney service company offering:
-• Chimney sweeping and cleaning
-• Chimney repairs and inspections  
-• Fireplace installation and maintenance
-• Dryer vent cleaning
+TechSolutions Pro is a Silicon Valley technology services company offering:
+• Software development and consulting
+• IT infrastructure management
+• Cloud solutions and migration
+• Cybersecurity services
 
-They serve areas including Alexandria, Arlington, Fairfax, and Vienna. The company is licensed and insured, focusing on safety and quality workmanship.
+They serve areas including San Francisco, Palo Alto, and Cupertino. The company is certified and experienced, focusing on innovation and quality technology solutions.
 
 **Key Services:**
-• Chimney Sweeps: Regular maintenance and cleaning
-• Repairs: Caps, crowns, damper repairs
-• Installations: Wood stoves and fireplace design
+• Software Development: Custom applications and platforms
+• Cloud Services: AWS, Azure, GCP management
+• Security: Threat assessment and compliance
+• Consulting: Tech strategy and implementation
 
-📱 Contact: (703) 659-1699
+📱 Contact: (555) 123-4567
 
 [Artifact saved with full content for detailed review]"
 ```
