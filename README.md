@@ -1,8 +1,41 @@
-# MCP AI Agent
+# MCP AI Agent: The Self-Improving Autonomous Intelligence
 
-A sophisticated, modular AI agent with MCP (Model Context Protocol) integration, browser automation, and **Custom Web UI** with artifact generation support.
+🚀 **Breakthrough Self-Evolution**: The first AI agent that can autonomously assess its own code, suggest improvements, test implementations, and evolve itself through **LEANN-powered self-improvement**. This revolutionary system combines MCP orchestration, autonomous learning, and continuous optimization to create an agent that grows smarter over time.
+
+## 🎯 The Core Innovation: Self-Improvement Through LEANN
+
+**What makes this agent revolutionary?**
+
+- **Self-Assessment**: Analyzes its own codebase for weaknesses and opportunities
+- **Autonomous Code Review**: Identifies bugs, performance bottlenecks, and feature gaps
+- **Self-Improvement**: Generates and implements code improvements and optimizations
+- **Continuous Learning**: Buildings upon previous improvements to compound intelligence gains
+
+**Verified Results:**
+- ✅ **Self-Improvement Success**: Documented in `LEANN_SELF_IMPROVEMENT_SUCCESS.md`
+- ✅ **Verified Improvements**: Changes validated in `SELF_IMPROVEMENT_VERIFIED.md`
+- ✅ **Production Implementation**: Ready for deployment in `IMPLEMENTATION_COMPLETE.md`
+
+This isn't just another AI agent—it's an agent that evolves itself, becoming more capable with every interaction.
 
 ## ✨ Features
+
+### 🧠 **LEANN Self-Improvement System** (PRIMARY)
+
+The revolutionary core feature that makes this agent truly autonomous:
+
+- **⚡ Autonomously Assesses Own Code**: Analyzes its codebase for improvements and bugs
+- **🔄 Self-Generating Improvements**: Creates and implements code optimizations automatically
+- **🧪 Self-Testing Implementation**: Tests its own changes for reliability
+- **📈 Compound Intelligence Growth**: Builds upon previous improvements across sessions
+- **✨ Breakthrough Autonomy**: First agent that evolves its own capabilities
+
+**Key Achievements:**
+- ⚡ **Verified Self-Improvement**: See `LEANN_SELF_IMPROVEMENT_SUCCESS.md`
+- ✨ **Production Ready**: Live improvements in `IMPLEMENTATION_COMPLETE.md`
+- 🔍 **Transparent Review**: Changes validated in `SELF_IMPROVEMENT_VERIFIED.md`
+
+### 🛠️ **Supporting Systems**
 
 - **Interactive Web UI**: Beautiful browser-based interface with real-time chat
 - **Browser Automation**: Full Playwright-based web browsing with anti-detection
