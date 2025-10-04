@@ -54,7 +54,7 @@ async def get_ui():
     return FileResponse(ui_path)
 
 @app.post("/tts")
-async def text_to_speech(request: dict):
+async def text_to_speech(request: dict) -> dict:
     """Generate speech from text using Kokoro TTS."""
     try:
         # Import here to avoid module-level import issues
@@ -86,7 +86,7 @@ async def text_to_speech(request: dict):
         return {"error": str(e)}
 
 @app.get("/tts/health")
-async def tts_health():
+async def tts_health() -> dict:
     """Check if TTS service is available."""
     # Import here to avoid module-level import issues
     import sys
@@ -98,7 +98,7 @@ async def tts_health():
     return {"available": is_healthy}
 
 @app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
+async def websocket_endpoint(websocket: WebSocket) -> None:
     """WebSocket endpoint for real-time chat with ReAct loop."""
     await websocket.accept()
     agent = get_agent()

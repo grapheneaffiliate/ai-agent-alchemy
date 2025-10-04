@@ -4,10 +4,23 @@ import re
 import json
 import asyncio
 import time
+import logging
 from typing import List, Tuple, Dict, Any, Optional
 from collections import defaultdict
 from .artifacts import ArtifactGenerator
-from src.plugins.search import SearchPlugin  # For citation post-processing
+try:
+    from ..plugins.search import SearchPlugin  # For citation post-processing
+except ImportError:
+    # Fallback for when running as a module
+    from src.plugins.search import SearchPlugin
+from .react_responses import (
+    format_health_analysis_response,
+    format_comprehensive_analysis_response,
+    format_enhancement_plan_response,
+    format_intelligence_analysis_response,
+)
+
+logger = logging.getLogger(__name__)
 
 class ToolMetrics:
     """Track tool usage metrics for monitoring and optimization."""
@@ -24,6 +37,11 @@ class ToolMetrics:
         self.tool_times[tool_name].append(execution_time)
         if not success:
             self.tool_errors[tool_name] += 1
+
+        logger.debug(
+            'tool_usage_recorded',
+            extra={'tool': tool_name, 'execution_time': round(execution_time, 3), 'success': success}
+        )
 
     def get_metrics_summary(self) -> Dict[str, Any]:
         """Get comprehensive metrics summary."""
@@ -85,7 +103,7 @@ async def execute_react_loop(
     final_response = None
     artifact_html = None
 
-    print(f"🔄 Starting ReAct loop (30s timeout) for: {user_input[:50]}...")
+    logger.info(f"🔄 Starting ReAct loop (30s timeout) for: {user_input[:50]}...")
 
     while iteration < max_iterations:
         iteration += 1
@@ -93,17 +111,17 @@ async def execute_react_loop(
 
         # Check overall timeout
         if elapsed > timeout:
-            print(f"⏰ ReAct loop timeout reached after {elapsed:.1f}s")
+            logger.warning(f"⏰ ReAct loop timeout reached after {elapsed:.1f}s")
             if final_response is None:
                 final_response = "Response timed out. Please try a simpler question."
             break
 
-        print(f"🔁 Iteration {iteration}/{max_iterations} ({elapsed:.1f}s elapsed)")
+        logger.info(f"🔁 Iteration {iteration}/{max_iterations} ({elapsed:.1f}s elapsed)")
 
         try:
             # First iteration: special handling for time questions
             if iteration == 1 and is_time_question(user_input):
-                print("🕐 Time question detected - getting current time")
+                logger.info("🕐 Time question detected - getting current time")
                 try:
                     time_result = await asyncio.wait_for(
                         plugin_executor.execute('time', 'get_current_time', {}),
@@ -113,38 +131,133 @@ async def execute_react_loop(
                     if time_result.get('status') == 'success':
                         time_data = time_result.get('result', {})
                         final_response = f"The current time in Eastern Time (EST/EDT) is {time_data.get('time_12h', 'N/A')} on {time_data.get('day_of_week', '')} {time_data.get('date', '')}"
-                        print("✅ Time retrieved successfully")
+                        logger.info("✅ Time retrieved successfully")
                         break
                 except Exception as e:
-                    print(f"⚠️ Time retrieval error: {str(e)}")
+                    logger.warning(f"⚠️ Time retrieval error: {str(e)}")
                     # Fall through to normal LLM response
             
-            # First iteration: special handling for codebase questions with LEANN
+            # First iteration: special handling for codebase questions with enhanced LEANN
             if iteration == 1 and is_codebase_question(user_input):
-                print("📚 Codebase question detected - using LEANN analysis")
+                logger.info("📚 Codebase question detected - routing to appropriate LEANN tool")
                 try:
-                    # Use LEANN's analyze_codebase_intelligence which now uses proper CLI
-                    # Pass the actual user question so LEANN can answer it specifically
+                    # Intelligent routing: determine which LEANN tool to use based on question
+                    leann_tool, leann_args = route_to_leann_tool(user_input)
+
+                    logger.info(f"🔧 Using LEANN tool: {leann_tool}")
+
+                    # Execute the appropriate LEANN tool
                     codebase_analysis = await asyncio.wait_for(
-                        plugin_executor.execute('leann', 'analyze_codebase_intelligence', {
-                            'index_name': 'agent-code',
-                            'question': user_input  # Pass the actual question!
-                        }),
-                        timeout=120.0  # LEANN needs time to build index on first run
+                        plugin_executor.execute('leann', leann_tool, leann_args),
+                        timeout=120.0  # Enhanced analysis needs time to build index on first run
                     )
                     
                     if codebase_analysis.get('status') == 'success':
                         analysis_data = codebase_analysis.get('analysis', {})
-                        
+
+                        # Route response formatting based on which LEANN tool was used
+                        if leann_tool == 'analyze_codebase_health':
+                            final_response = format_health_analysis_response(analysis_data)
+                            logger.info("✅ LEANN health analysis completed successfully")
+                            break
+                        elif leann_tool == 'generate_codebase_enhancement_plan':
+                            # Extract the enhancement plan string directly
+                            enhancement_plan = codebase_analysis.get('enhancement_plan', '')
+                            if enhancement_plan:
+                                final_response = enhancement_plan
+                                logger.info("✅ LEANN enhancement plan completed successfully")
+                            else:
+                                final_response = format_enhancement_plan_response(analysis_data)
+                                logger.info("✅ LEANN enhancement plan completed successfully (fallback)")
+                            break
+                        elif leann_tool == 'analyze_codebase_intelligence':
+                            # Check if we got a specific answer from the intelligence toolkit
+                            if 'overview' in analysis_data and analysis_data.get('method') == 'text_analysis_question_specific':
+                                # Use the specific plugin answer directly
+                                final_response = analysis_data['overview']
+                                logger.info("✅ LEANN intelligence analysis completed successfully with specific answer")
+                            else:
+                                # Fall back to comprehensive analysis
+                                final_response = format_comprehensive_analysis_response(analysis_data)
+                                logger.info("✅ LEANN intelligence analysis completed successfully with comprehensive analysis")
+                            break
+                        elif leann_tool == 'comprehensive_self_improvement_analysis':
+                            # Extract the enhancement plan string directly for comprehensive analysis too
+                            enhancement_plan = codebase_analysis.get('enhancement_plan', '')
+                            if enhancement_plan:
+                                final_response = enhancement_plan
+                                logger.info("✅ LEANN comprehensive analysis completed successfully")
+                            else:
+                                # Fallback to building comprehensive response from analysis data
+                                diagnosis = analysis_data.get('comprehensive_diagnosis', {})
+                                project_overview = diagnosis.get('project_overview', {}) if isinstance(diagnosis, dict) else {}
+                                code_quality = diagnosis.get('code_quality', {}) if isinstance(diagnosis, dict) else {}
+                                performance_analysis = diagnosis.get('performance', {}) if isinstance(diagnosis, dict) else {}
+                                recommendations = diagnosis.get('recommendations', []) if isinstance(diagnosis, dict) else []
+
+                                # Build comprehensive response
+                                response_parts = ["# Enhanced Codebase Self-Improvement Analysis\n"]
+
+                                # Project Overview
+                                response_parts.append("## 📁 Project Overview")
+                                response_parts.append(f"- **Total Files**: {project_overview.get('total_files', 0)}")
+                                response_parts.append(f"- **Python Files**: {project_overview.get('python_files', 0)}")
+                                response_parts.append(f"- **Test Files**: {project_overview.get('test_files', 0)}")
+                                response_parts.append(f"- **Test Coverage**: {project_overview.get('test_coverage_ratio', 0):.1%}")
+                                response_parts.append("")
+
+                                # Code Quality
+                                response_parts.append("## ⚡ Code Quality Metrics")
+                                response_parts.append(f"- **Complexity Score**: {code_quality.get('complexity_score', 0):.1f}/100")
+                                response_parts.append(f"- **Total Functions**: {code_quality.get('total_functions', 0)}")
+                                response_parts.append(f"- **Functions/FILE**: {code_quality.get('avg_functions_per_file', 0):.1f}")
+                                response_parts.append(f"- **Lines/FILE**: {code_quality.get('avg_lines_per_file', 0):.1f}")
+                                response_parts.append("")
+
+                                # Performance
+                                response_parts.append("## 🚀 Performance Indicators")
+                                perf_indicators = performance_analysis.get('performance_indicators', [])
+                                if perf_indicators:
+                                    for indicator in perf_indicators:
+                                        response_parts.append(f"- ✓ {indicator}")
+                                else:
+                                    response_parts.append("- No specific performance indicators detected")
+                                response_parts.append("")
+
+                                # Recommendations
+                                if recommendations:
+                                    response_parts.append("## 💡 Enhancement Recommendations")
+                                    for i, rec in enumerate(recommendations, 1):
+                                        response_parts.append(f"{i}. {rec}")
+                                    response_parts.append("")
+
+                                # Self-Improvement Score
+                                self_improvement_score = analysis_data.get('self_improvement_score', 0)
+                                response_parts.append(f"## 🎖️ Self-Improvement Score: **{self_improvement_score}/100**")
+
+                                # Provide insights based on score
+                                if self_improvement_score >= 80:
+                                    response_parts.append("**Excellent!** This codebase demonstrates world-class quality and practices.")
+                                elif self_improvement_score >= 60:
+                                    response_parts.append("**Good!** The codebase is well-structured with room for some improvements.")
+                                elif self_improvement_score >= 40:
+                                    response_parts.append("**Fair.** There are opportunities for significant improvement.")
+                                else:
+                                    response_parts.append("**Needs Attention.** Critical improvements are recommended.")
+
+                                final_response = "\n".join(response_parts)
+                                logger.info("✅ Enhanced LEANN self-improvement analysis completed successfully (fallback)")
+                            break
+
                         # Check if we got LEANN's actual answer (new format)
                         if 'overview' in analysis_data:
                             final_response = analysis_data['overview']
-                            print("✅ LEANN codebase analysis completed successfully (semantic search)")
+                            logger.info("✅ LEANN codebase analysis completed successfully (semantic search)")
                             break
-                        
+
                         # Otherwise fallback format (old text analysis)
                         response_parts = ["# Agent Codebase Analysis\n"]
-                        
+
                         if 'architecture' in analysis_data:
                             arch = analysis_data['architecture']
                             response_parts.append(f"## Architecture")
@@ -152,7 +265,7 @@ async def execute_react_loop(
                             response_parts.append(f"- Python files: {arch.get('python_files', 'N/A')}")
                             response_parts.append(f"- Directories: {', '.join(arch.get('directories', []))}")
                             response_parts.append("")
-                        
+
                         if 'functions' in analysis_data:
                             funcs = analysis_data['functions']
                             if isinstance(funcs, dict):
@@ -161,7 +274,7 @@ async def execute_react_loop(
                                 response_parts.append(f"- Async: {funcs.get('async_functions', 'N/A')}")
                                 response_parts.append(f"- {funcs.get('main_functions', '')}")
                                 response_parts.append("")
-                        
+
                         if 'classes' in analysis_data:
                             classes = analysis_data['classes']
                             if isinstance(classes, dict):
@@ -169,34 +282,34 @@ async def execute_react_loop(
                                 response_parts.append(f"- Total: {classes.get('total', 'N/A')}")
                                 response_parts.append(f"- Main classes: {classes.get('main_classes', '')}")
                                 response_parts.append("")
-                        
+
                         if 'patterns' in analysis_data and isinstance(analysis_data['patterns'], list):
                             response_parts.append(f"## Design Patterns")
                             for pattern in analysis_data['patterns']:
                                 response_parts.append(f"- {pattern}")
                             response_parts.append("")
-                        
+
                         final_response = "\n".join(response_parts)
-                        print("✅ LEANN codebase analysis completed successfully (fallback)")
+                        logger.info("✅ LEANN codebase analysis completed successfully (fallback)")
                         break
                     else:
-                        print(f"⚠️ LEANN analysis failed: {codebase_analysis.get('error', 'Unknown error')}")
+                        logger.warning(f"⚠️ LEANN analysis failed: {codebase_analysis.get('error', 'Unknown error')}")
                         # Fall through to normal LLM response
                         
                 except asyncio.TimeoutError:
-                    print("⏰ LEANN analysis timed out, falling back to LLM")
+                    logger.warning("⏰ LEANN analysis timed out, falling back to LLM")
                     # Fall through to normal LLM response
                 except Exception as e:
-                    print(f"❌ LEANN analysis error: {str(e)}, falling back to LLM")
+                    logger.error(f"❌ LEANN analysis error: {str(e)}, falling back to LLM")
                     # Fall through to normal LLM response
 
             # First iteration: special handling for news questions
             if iteration == 1 and is_news_question(user_input):
-                print("📰 News question detected - fetching current news")
+                logger.info("📰 News question detected - fetching current news")
                 try:
                     # Extract topic from user input
                     topic = extract_news_topic(user_input)
-                    print(f"📝 Topic extracted: '{topic}'")
+                    logger.info(f"📝 Topic extracted: '{topic}'")
 
                     # Try browser plugin as fallback for basic news
                     try:
@@ -233,15 +346,15 @@ async def execute_react_loop(
                                     response += "\n"
 
                                 final_response = response
-                                print("✅ Browser news retrieved successfully")
+                                logger.info("✅ Browser news retrieved successfully")
                                 break
                             else:
-                                print("⚠️ No news found in browser results")
+                                logger.warning("⚠️ No news found in browser results")
                         else:
-                            print(f"⚠️ Browser news failed: {basic_news_result.get('result', 'Unknown error')}")
+                            logger.warning(f"⚠️ Browser news failed: {basic_news_result.get('result', 'Unknown error')}")
 
                     except Exception as browser_e:
-                        print(f"⚠️ Browser news failed: {str(browser_e)}")
+                        logger.warning(f"⚠️ Browser news failed: {str(browser_e)}")
 
                     # If no articles found, try backup news fetch
                     if not final_response:
@@ -271,28 +384,28 @@ async def execute_react_loop(
                                         response += "\n"
 
                                     final_response = response
-                                    print("✅ Backup news retrieved successfully")
+                                    logger.info("✅ Backup news retrieved successfully")
                                     break
                                 else:
-                                    print("⚠️ No articles found in backup news")
+                                    logger.warning("⚠️ No articles found in backup news")
                             else:
-                                print(f"⚠️ Backup news failed: {backup_news_result.get('result', 'Unknown error')}")
+                                logger.warning(f"⚠️ Backup news failed: {backup_news_result.get('result', 'Unknown error')}")
 
                         except Exception as backup_e:
-                            print(f"⚠️ Backup news failed: {str(backup_e)}")
+                            logger.warning(f"⚠️ Backup news failed: {str(backup_e)}")
 
                     # If still no news, provide basic message
                     if not final_response:
                         final_response = f"# Latest News About {topic.title()}\n\nNo news found for this topic. Try a different topic or check back later."
-                        print("⚠️ No news retrieved from any source")
+                        logger.warning("⚠️ No news retrieved from any source")
                         break
 
                 except asyncio.TimeoutError:
-                    print("⏰ News retrieval timed out, falling back to LLM")
+                    logger.warning("⏰ News retrieval timed out, falling back to LLM")
                     final_response = f"I couldn't fetch current news about '{topic}'. Let me try to help with general information instead."
                     break
                 except Exception as e:
-                    print(f"❌ News retrieval error: {str(e)}, falling back to LLM")
+                    logger.error(f"❌ News retrieval error: {str(e)}, falling back to LLM")
                     # Fall through to LLM response
 
             # Normal question processing
@@ -311,18 +424,18 @@ async def execute_react_loop(
                     if has_tool_keywords or has_xml_tools:
                         tool_calls = extract_tool_calls(response)
                         if tool_calls:
-                            print(f"🔧 Found {len(tool_calls)} tool calls in first response, continuing to execute")
+                            logger.info(f"🔧 Found {len(tool_calls)} tool calls in first response, continuing to execute")
                             # Don't break - continue to tool execution
                         else:
-                            print(f"✅ First response sufficient, returning")
+                            logger.info(f"✅ First response sufficient, returning")
                             break
                     else:
                         # Response doesn't mention tools, return directly
-                        print(f"✅ First response sufficient, returning")
+                        logger.info(f"✅ First response sufficient, returning")
                         break
 
                 except asyncio.TimeoutError:
-                    print("⏰ First iteration timed out, continuing with tool-focused approach...")
+                    logger.warning("⏰ First iteration timed out, continuing with tool-focused approach...")
                     current_input = f"{user_input}\n\nPlease use tools ONLY if absolutely necessary and keep your response concise."
 
             # Subsequent iterations with tools
@@ -335,27 +448,27 @@ async def execute_react_loop(
                     timeout=10.0  # Subsequent calls get 10 seconds each
                 )
 
-                print(f"📝 LLM Response (length: {len(response)})")
+                logger.info(f"📝 LLM Response (length: {len(response)})")
                 final_response = response
 
                 # Look for tool calls
                 tool_calls = extract_tool_calls(response)
 
                 if not tool_calls:
-                    print(f"✅ No tool calls found - finalizing response")
+                    logger.info(f"✅ No tool calls found - finalizing response")
                     break
 
-                print(f"🔧 Found {len(tool_calls)} tool calls")
+                logger.info(f"🔧 Found {len(tool_calls)} tool calls")
 
                 # Execute tools with timeout
                 tool_results = []
                 for tool_call in tool_calls:
                     elapsed_after_call = time.time() - start_time
                     if elapsed_after_call > timeout:
-                        print(f"⏰ Tool execution timeout reached")
+                        logger.warning(f"⏰ Tool execution timeout reached")
                         break
 
-                    print(f"🔧 Executing: {tool_call['server']}.{tool_call['tool']}")
+                    logger.info(f"🔧 Executing: {tool_call['server']}.{tool_call['tool']}")
 
                     try:
                         result = await asyncio.wait_for(
@@ -367,19 +480,19 @@ async def execute_react_loop(
 
                         if success:
                             tool_results.append(result['result'])
-                            print(f"✅ Tool executed successfully")
+                            logger.info(f"✅ Tool executed successfully")
                         else:
                             tool_results.append(f"Tool failed: {result.get('error', 'Unknown error')}")
-                            print(f"❌ Tool failed: {result.get('error', 'Unknown error')}")
+                            logger.error(f"❌ Tool failed: {result.get('error', 'Unknown error')}")
 
                     except asyncio.TimeoutError:
                         tool_results.append("Tool execution timed out")
                         metrics.record_tool_use(f"{tool_call['server']}.{tool_call['tool']}", 0, False)
-                        print(f"⏰ Tool timed out")
+                        logger.warning(f"⏰ Tool timed out")
                     except Exception as e:
                         tool_results.append(f"Tool error: {str(e)}")
                         metrics.record_tool_use(f"{tool_call['server']}.{tool_call['tool']}", 0, False)
-                        print(f"❌ Tool exec exception: {str(e)}")
+                        logger.error(f"❌ Tool exec exception: {str(e)}")
 
                 if elapsed_after_call > timeout:
                     break
@@ -388,13 +501,13 @@ async def execute_react_loop(
                 current_input = f"User query: {user_input}\n\nTool results:\n" + "\n".join(tool_results) + "\n\nProvide final concise answer:"
 
             except asyncio.TimeoutError:
-                print(f"⏰ Iteration {iteration} LLM call timed out")
+                logger.warning(f"⏰ Iteration {iteration} LLM call timed out")
                 if final_response is None:
                     final_response = "I'm thinking too long. Please try asking a more specific question."
                 break
 
         except Exception as e:
-            print(f"❌ ReAct iteration {iteration} failed: {str(e)}")
+            logger.error(f"❌ ReAct iteration {iteration} failed: {str(e)}")
             if final_response is None:
                 final_response = f"I encountered an error: {str(e)}"
             break
@@ -402,7 +515,7 @@ async def execute_react_loop(
     # Print final metrics
     final_metrics = metrics.get_metrics_summary()
     total_time = time.time() - start_time
-    print(f"📊 Final metrics: {final_metrics['total_tool_calls']} tools used, {total_time:.1f}s total time")
+    logger.info(f"📊 Final metrics: {final_metrics['total_tool_calls']} tools used, {total_time:.1f}s total time")
 
     # Extract artifact from final response if present
     if final_response:
@@ -437,7 +550,7 @@ def extract_tool_calls(response: str) -> List[Dict[str, Any]]:
                 tool_call = json.loads(tool_json)
                 tool_calls.append(tool_call)
             except json.JSONDecodeError:
-                print(f"⚠️  Could not parse tool JSON: {tool_json[:100]}...")
+                logger.warning(f"⚠️  Could not parse tool JSON: {tool_json[:100]}...")
                 continue
 
     # Look for XML tool call patterns
@@ -458,9 +571,9 @@ def extract_tool_calls(response: str) -> List[Dict[str, Any]]:
                 "args": args_dict
             }
             tool_calls.append(tool_call)
-            print(f"✅ Parsed XML tool call: {server_name}.{tool_name}")
+            logger.info(f"✅ Parsed XML tool call: {server_name}.{tool_name}")
         except (json.JSONDecodeError, IndexError) as e:
-            print(f"⚠️  Could not parse XML tool call: {str(e)}")
+            logger.warning(f"⚠️  Could not parse XML tool call: {str(e)}")
             continue
 
     return tool_calls
@@ -559,7 +672,7 @@ def extract_news_topic(user_input: str) -> str:
 
 def is_codebase_question(user_input: str) -> bool:
     """
-    Determine if the user question is about the agent's codebase.
+    Determine if the user question is about the agent's codebase or requires LEANN analysis.
 
     Returns True for questions like:
     - "tell me about your codebase"
@@ -568,6 +681,13 @@ def is_codebase_question(user_input: str) -> bool:
     - "how is your code structured"
     - "how is the plugin system implemented"
     - "assess your codebase"
+    - "health check"
+    - "analyze your health"
+    - "improve yourself"
+    - "self improvement"
+    - "what plugins do you have"
+    - "what capabilities do you have"
+    - "what tools do you have"
     """
     input_lower = user_input.lower()
 
@@ -578,10 +698,68 @@ def is_codebase_question(user_input: str) -> bool:
         'how are you built', 'how do you work', 'how is', 'how does',
         'what code', 'your code', 'internal code',
         'assess', 'analyze', 'review', 'evaluate',
-        'design pattern', 'system design', 'file structure'
+        'design pattern', 'system design', 'file structure',
+        # Plugin and capability related keywords
+        'what plugins', 'plugin list', 'plugins do you have', 'what plugins do you have',
+        'how many plugins', 'what plugins', 'plugins are available', 'available plugins',
+        'what tools do you have', 'what capabilities', 'what can you do', 'list your plugins',
+        'show me your plugins', 'what plugins do', 'plugins you have', 'your plugins',
+        'what tools are available', 'what capabilities do you have', 'what can you',
+        'plugin capabilities', 'tool capabilities', 'available tools', 'plugin features'
     ]
 
-    return any(keyword in input_lower for keyword in codebase_keywords)
+    # Health and improvement keywords
+    health_keywords = [
+        'health check', 'health', 'status', 'diagnose', 'diagnosis',
+        'improve yourself', 'self improvement', 'enhancement plan',
+        'analysis', 'comprehensive analysis', 'improve your'
+    ]
+
+    return any(keyword in input_lower for keyword in codebase_keywords) or \
+           any(keyword in input_lower for keyword in health_keywords)
+
+
+def route_to_leann_tool(user_input: str) -> Tuple[str, Dict[str, Any]]:
+    """
+    Route user input to the appropriate LEANN tool based on question intent.
+
+    Returns (tool_name, tool_args) tuple.
+
+    Routing logic:
+    - health check, analyze health -> analyze_codebase_health
+    - improve yourself, enhancement plan -> generate_codebase_enhancement_plan
+    - analyze code, intelligence -> analyze_codebase_intelligence
+    - assess codebase, comprehensive -> comprehensive_self_improvement_analysis
+    - ALL plugin-related questions -> analyze_codebase_intelligence (with specific question)
+    """
+    input_lower = user_input.lower()
+
+    # Plugin-specific questions - route to intelligence with specific question
+    plugin_keywords = [
+        'what plugins', 'plugin list', 'plugins do you have', 'what plugins do you have',
+        'how many plugins', 'what plugins', 'plugins are available', 'available plugins',
+        'what tools do you have', 'what capabilities', 'what can you do', 'list your plugins',
+        'show me your plugins', 'what plugins do', 'plugins you have', 'your plugins',
+        'what tools are available', 'what capabilities do you have', 'what can you',
+        'plugin capabilities', 'tool capabilities', 'available tools', 'plugin features'
+    ]
+    if any(word in input_lower for word in plugin_keywords):
+        return 'analyze_codebase_intelligence', {'index_name': 'agent-code', 'question': 'What plugins are available in this codebase?'}
+
+    # Health-specific questions
+    if any(word in input_lower for word in ['health check', 'health', 'analyze your health', 'system health', 'diagnose health']):
+        return 'analyze_codebase_health', {'index_name': 'agent-code'}
+
+    # Enhancement plan questions
+    if any(word in input_lower for word in ['enhancement plan', 'generate_codebase_enhancement_plan', 'improve yourself', 'self improvement']):
+        return 'generate_codebase_enhancement_plan', {'index_name': 'agent-code'}
+
+    # Intelligence/analysis questions
+    if any(word in input_lower for word in ['analyze your code', 'analyze_codebase_intelligence', 'architectural analysis', 'code intelligence']):
+        return 'analyze_codebase_intelligence', {'index_name': 'agent-code'}
+
+    # Default to comprehensive self-improvement analysis
+    return 'comprehensive_self_improvement_analysis', {'index_name': 'agent-code', 'question': user_input}
 
 
 async def execute_codebase_analysis(user_input: str, plugin_executor: 'PluginExecutor') -> List[str]:
@@ -595,7 +773,7 @@ async def execute_codebase_analysis(user_input: str, plugin_executor: 'PluginExe
 
     try:
         # Advanced codebase analysis - reduce timeout from 10.0 to 8.0 seconds
-        print("🔍 Running LEANN codebase intelligence analysis...")
+        logger.info("🔍 Running LEANN codebase intelligence analysis...")
         analysis_result = await asyncio.wait_for(
             plugin_executor.execute('leann', 'analyze_codebase_intelligence', {}),
             timeout=8.0  # Reduced from 10.0 to allow time for other operations
@@ -606,20 +784,20 @@ async def execute_codebase_analysis(user_input: str, plugin_executor: 'PluginExe
             results.append(f"Advanced Codebase Analysis:\n{analysis_data}")
         else:
             error_msg = analysis_result.get('error', 'Unknown error')
-            print(f"⚠️ LEANN analysis failed with: {error_msg}")
+            logger.warning(f"⚠️ LEANN analysis failed with: {error_msg}")
             results.append(f"Advanced analysis failed: {error_msg}")
 
     except asyncio.TimeoutError:
-        print("⚠️ LEANN analysis timed out")
+        logger.warning("⚠️ LEANN analysis timed out")
         results.append("Advanced codebase analysis timed out (try simpler question)")
     except Exception as e:
         error_detail = f"{type(e).__name__}: {str(e)}"
-        print(f"⚠️ LEANN analysis error: {error_detail}")
+        logger.warning(f"⚠️ LEANN analysis error: {error_detail}")
         results.append(f"Advanced codebase analysis error: {error_detail}")
 
     try:
         # Search for class definitions - reduce timeout from 5.0 to 3.0 seconds
-        print("🔍 Searching for class definitions...")
+        logger.info("🔍 Searching for class definitions...")
         classes_result = await asyncio.wait_for(
             plugin_executor.execute('leann', 'leann_search', {'query': 'class definitions', 'top_k': 5}),  # Reduced top_k
             timeout=3.0
@@ -636,7 +814,7 @@ async def execute_codebase_analysis(user_input: str, plugin_executor: 'PluginExe
 
     try:
         # Search for API endpoints - reduce timeout from 5.0 to 3.0 seconds
-        print("🔍 Searching for API endpoints...")
+        logger.info("🔍 Searching for API endpoints...")
         api_result = await asyncio.wait_for(
             plugin_executor.execute('leann', 'leann_search', {'query': 'API endpoints def ', 'top_k': 5}),  # Reduced top_k, more specific query
             timeout=3.0
@@ -653,7 +831,7 @@ async def execute_codebase_analysis(user_input: str, plugin_executor: 'PluginExe
 
     try:
         # Search for configuration and setup - reduce timeout from 5.0 to 3.0 seconds
-        print("🔍 Searching for configuration and setup...")
+        logger.info("🔍 Searching for configuration and setup...")
         config_result = await asyncio.wait_for(
             plugin_executor.execute('leann', 'leann_search', {'query': 'configuration setup', 'top_k': 5}),  # Reduced top_k
             timeout=3.0

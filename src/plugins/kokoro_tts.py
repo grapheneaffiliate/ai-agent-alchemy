@@ -1,7 +1,7 @@
 """Kokoro TTS integration plugin."""
 
 import httpx
-from typing import Optional
+from typing import Optional, Dict, Any
 
 
 class KokoroTTS:
@@ -52,6 +52,25 @@ class KokoroTTS:
                 return response.status_code == 200
         except:
             return False
+    
+    async def execute(self, server: str, tool_name: str, args: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute Kokoro TTS commands via MCP interface."""
+        try:
+            if tool_name == 'generate-speech':
+                text = args.get('text', '')
+                voice = args.get('voice', 'af_sky')
+                result = await self.generate_speech(text, voice)
+                if result:
+                    return {"status": "success", "result": {"audio": result.hex(), "format": "mp3"}}
+                else:
+                    return {"status": "error", "error": "TTS generation failed"}
+            elif tool_name == 'health-check':
+                is_healthy = await self.health_check()
+                return {"status": "success", "result": {"healthy": is_healthy}}
+            else:
+                return {"status": "error", "error": f"Unknown tool: {tool_name}"}
+        except Exception as e:
+            return {"status": "error", "error": str(e)}
 
 
 # Singleton instance
@@ -64,3 +83,10 @@ def get_tts(base_url: str = "http://localhost:8880") -> KokoroTTS:
     if _tts_instance is None:
         _tts_instance = KokoroTTS(base_url)
     return _tts_instance
+
+
+# MCP Plugin Interface
+async def execute(server: str, tool_name: str, args: Dict[str, Any]) -> Dict[str, Any]:
+    """Execute Kokoro TTS plugin commands via MCP interface."""
+    tts = get_tts()
+    return await tts.execute(server, tool_name, args)

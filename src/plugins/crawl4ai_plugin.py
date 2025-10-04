@@ -10,7 +10,7 @@ class Crawl4AIPlugin:
     def __init__(self):
         self.crawler = None
         
-    async def initialize(self):
+    async def initialize(self) -> bool:
         """Initialize the async crawler."""
         try:
             from crawl4ai import AsyncWebCrawler, BrowserConfig
@@ -34,7 +34,7 @@ class Crawl4AIPlugin:
             return False
     
     async def crawl_url(
-        self, 
+        self,
         url: str,
         extract_markdown: bool = True,
         css_selector: Optional[str] = None,
@@ -331,7 +331,7 @@ class Crawl4AIPlugin:
         
         return "\n".join(lines)
     
-    async def close(self):
+    async def close(self) -> None:
         """Close the crawler."""
         if self.crawler:
             try:

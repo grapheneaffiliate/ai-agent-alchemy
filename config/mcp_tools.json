@@ -78,6 +78,7 @@
       "tools": [
         {
           "name": "get-current-time",
+          "tool_name": "get_current_time",
           "description": "Get the current time",
           "parameters": {
             "format": "string"
@@ -85,6 +86,7 @@
         },
         {
           "name": "get-current-date",
+          "tool_name": "get_current_date",
           "description": "Get the current date",
           "parameters": {
             "format": "string"
@@ -92,11 +94,13 @@
         },
         {
           "name": "get-day-info",
+          "tool_name": "get_day_info",
           "description": "Get day info",
           "parameters": {}
         },
         {
           "name": "format-datetime",
+          "tool_name": "format_datetime",
           "description": "Format datetime",
           "parameters": {
             "format_string": "string"
@@ -289,6 +293,55 @@
           "name": "analyze-codebase",
           "tool_name": "analyze_codebase_intelligence",
           "description": "Perform advanced semantic analysis of codebase architecture, functions, classes, and patterns",
+          "args_schema": {
+            "type": "object",
+            "properties": {
+              "index_name": {
+                "type": "string",
+                "description": "Name of the index to analyze (default: agent-code)",
+                "default": "agent-code"
+              }
+            }
+          }
+        },
+        {
+          "name": "comprehensive-self-improvement-analysis",
+          "tool_name": "comprehensive_self_improvement_analysis",
+          "description": "Perform world-class self-improvement analysis with quantified scoring (0-100) across 6 dimensions",
+          "args_schema": {
+            "type": "object",
+            "properties": {
+              "index_name": {
+                "type": "string",
+                "description": "Name of the index to analyze (default: agent-code)",
+                "default": "agent-code"
+              },
+              "question": {
+                "type": "string",
+                "description": "Optional specific question for targeted analysis"
+              }
+            }
+          }
+        },
+        {
+          "name": "generate-codebase-enhancement-plan",
+          "tool_name": "generate_codebase_enhancement_plan",
+          "description": "Generate comprehensive enhancement plan with timelines, resources, and success metrics",
+          "args_schema": {
+            "type": "object",
+            "properties": {
+              "index_name": {
+                "type": "string",
+                "description": "Name of the index to analyze (default: agent-code)",
+                "default": "agent-code"
+              }
+            }
+          }
+        },
+        {
+          "name": "analyze-codebase-health",
+          "tool_name": "analyze_codebase_health",
+          "description": "Analyze overall codebase health with detailed metrics across 6 dimensions",
           "args_schema": {
             "type": "object",
             "properties": {

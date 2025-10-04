@@ -2,6 +2,7 @@
 """Comprehensive test of ALL plugins accessible from custom UI."""
 
 import asyncio
+import os
 import sys
 from pathlib import Path
 
@@ -49,50 +50,60 @@ async def test_browser_plugin():
     print("\n" + "="*60)
     print("Testing Browser Plugin")
     print("="*60)
-    
+
     executor = PluginExecutor()
-    
-    # Test navigate
-    print("\n1. Testing browse-url...")
-    result = await executor.execute('browser', 'navigate', {
-        'url': 'https://example.com'
-    })
-    if result.get('status') == 'success':
-        print("✅ Navigate: success")
-    else:
-        print(f"❌ Navigate: {result.get('error')}")
-    
-    # Test extract
-    print("\n2. Testing extract-text...")
+    browser_closed = False
+
     try:
-        result = await executor.execute('browser', 'extract-text', {'selector': 'h1'})
-        if result and result.get('status') == 'success':
-            if isinstance(result['result'], dict) and 'text' in result['result']:
-                print(f"✅ Extract Text: {result['result']['text'][:50]}...")
-            else:
-                print(f"✅ Extract Text: Got result - {str(result['result'])[:100]}")
+        # Test navigate
+        print("\n1. Testing browse-url...")
+        result = await executor.execute('browser', 'navigate', {
+            'url': 'https://example.com'
+        })
+        if result.get('status') == 'success':
+            print("✅ Navigate: success")
         else:
-            print(f"❌ Extract Text: {result.get('error') if result else 'No result returned'}")
-    except Exception as e:
-        print(f"❌ Extract Text: Test error - {str(e)}")
+            print(f"❌ Navigate: {result.get('error')}")
 
-    # Test get links
-    print("\n3. Testing get-links...")
-    result = await executor.execute('browser', 'get-links', {})
-    if result.get('status') == 'success':
-        links = result['result']
-        print(f"✅ Get Links: {len(links)} links found")
-    else:
-        print(f"❌ Get Links: {result.get('error')}")
+        # Test extract
+        print("\n2. Testing extract-text...")
+        try:
+            result = await executor.execute('browser', 'extract-text', {'selector': 'h1'})
+            if result and result.get('status') == 'success':
+                if isinstance(result['result'], dict) and 'text' in result['result']:
+                    print(f"✅ Extract Text: {result['result']['text'][:50]}...")
+                else:
+                    print(f"✅ Extract Text: Got result - {str(result['result'])[:100]}")
+            else:
+                print(f"❌ Extract Text: {result.get('error') if result else 'No result returned'}")
+        except Exception as e:
+            print(f"❌ Extract Text: Test error - {str(e)}")
 
-    # Test get news smart
-    print("\n4. Testing get-news-smart...")
-    result = await executor.execute('browser', 'get-news-smart', {'topic': 'ai', 'max_articles': 3})
-    if result.get('status') == 'success':
-        articles = result['result'].get('results', [])
-        print(f"✅ Get News Smart: {len(articles)} articles found")
-    else:
-        print(f"❌ Get News Smart: {result.get('error')}")
+        # Test get links
+        print("\n3. Testing get-links...")
+        result = await executor.execute('browser', 'get-links', {})
+        if result.get('status') == 'success':
+            links = result['result']
+            print(f"✅ Get Links: {len(links)} links found")
+        else:
+            print(f"❌ Get Links: {result.get('error')}")
+
+        # Test get news smart
+        print("\n4. Testing get-news-smart...")
+        result = await executor.execute('browser', 'get-news-smart', {'topic': 'ai', 'max_articles': 3})
+        if result.get('status') == 'success':
+            articles = result['result'].get('results', [])
+            print(f"✅ Get News Smart: {len(articles)} articles found")
+        else:
+            print(f"❌ Get News Smart: {result.get('error')}")
+
+    finally:
+        # Ensure browser cleanup
+        try:
+            await executor.execute('browser', 'browser_close', {})
+            browser_closed = True
+        except Exception as e:
+            print(f"⚠️  Browser cleanup warning: {e}")
 
 
 async def test_crawl4ai_plugin():
@@ -148,21 +159,30 @@ async def test_react_integration():
     print("\n" + "="*60)
     print("Testing ReAct Loop Integration")
     print("="*60)
-    
+
     from dotenv import load_dotenv
     from src.agent.models import Session
     load_dotenv()
-    
+
+    # Check if API keys are available before creating AgentAPI
+    api_key = os.getenv("OPENAI_API_KEY")
+    base_url = os.getenv("OPENAI_BASE_URL")
+
+    if not api_key or not base_url:
+        print(f"\n⚠️  ReAct loop test skipped: Missing OPENAI_API_KEY or OPENAI_BASE_URL in .env")
+        print("   This is expected in test environments without API access.")
+        return
+
     # Create a mock session for testing
-    session = Session(session_id="test-session")
+    session = Session(id="test-session")
     api = AgentAPI(session)
     executor = PluginExecutor()
-    
+
     test_queries = [
         "What time is it?",
         "Show me robotics news",
     ]
-    
+
     for query in test_queries:
         print(f"\n📝 Query: {query}")
         try:

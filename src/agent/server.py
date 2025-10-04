@@ -3,7 +3,7 @@
 import os
 import json
 import asyncio
-from typing import Optional, List, Dict, Any, AsyncIterator
+from typing import Optional, List, Dict, Any, AsyncIterator, Tuple
 from datetime import datetime
 from dotenv import load_dotenv
 
@@ -101,7 +101,7 @@ def get_agent() -> AgentAPI:
         plugin_executor = PluginExecutor()
     return agent_instance
 
-async def execute_tools_if_needed(message: str, agent: AgentAPI) -> tuple[str, Optional[str]]:
+async def execute_tools_if_needed(message: str, agent: AgentAPI) -> Tuple[str, Optional[str]]:
     """
     Check if message requires tool execution and execute if needed.
     Returns tuple of (tool_context, artifact_html)
@@ -262,7 +262,7 @@ async def list_models() -> ModelList:
     )
 
 @app.post("/v1/chat/completions")
-async def chat_completions(request: ChatCompletionRequest):
+async def chat_completions(request: ChatCompletionRequest) -> ChatCompletionResponse:
     """
     OpenAI-compatible chat completions endpoint.
     Supports both streaming and non-streaming responses.

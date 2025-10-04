@@ -1,3 +1,21 @@
+"""
+Core agent functionality and orchestration.
+
+Manages the main agent lifecycle including tool loading, session management,
+memory operations, and the primary execution loop for user interactions.
+This module serves as the central coordinator for all agent operations,
+integrating MCP tools, memory systems, and API interactions.
+
+Key Features:
+- Tool loading and management from MCP configuration
+- Session lifecycle management with persistence
+- Memory integration for conversation history and context
+- Plugin execution orchestration
+- Custom instruction loading from .clinerules
+- Interactive and programmatic execution modes
+- Tool call parsing and execution coordination
+"""
+
 import asyncio
 from typing import AsyncGenerator, List, Dict, Any, Optional
 from .models import Session, MCPTool

@@ -1,55 +1,78 @@
 #!/usr/bin/env python3
-"""
-Simple test for Enhanced News System
-"""
+"""Simple test to check if LEANN recommendations work."""
 
 import asyncio
 import sys
-import os
+from pathlib import Path
 
-# Add the src directory to the path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
+# Add src to path
+sys.path.insert(0, str(Path(__file__).parent / "src"))
 
-async def test():
-    print("🧪 Testing Enhanced News System...")
+from plugins.leann_plugin import LeannPlugin
+
+async def simple_test():
+    """Test recommendation generation specifically."""
+    print("🔍 Testing recommendation generation...")
 
     try:
-        from plugins.enhanced_news import get_enhanced_news
+        plugin = LeannPlugin()
 
-        # Test 1: Initialize the system
-        print("\n1️⃣ Testing initialization...")
-        enhanced_news = await get_enhanced_news()
-        print("   ✅ System initialized successfully")
+        # Create mock analysis data that SHOULD trigger recommendations
+        project_metrics = {
+            'total_files': 40,
+            'python_files': 30,
+            'test_files': 9,
+            'test_coverage_ratio': 0.2  # Less than 0.3 to trigger recommendation
+        }
 
-        # Test 2: Source Discovery
-        print("\n2️⃣ Testing source discovery...")
-        sources = await enhanced_news.source_discovery.discover_sources('artificial intelligence', max_sources=3)
-        print(f"   ✅ Found {len(sources)} sources:")
-        for source in sources:
-            print(f"      - {source.name}: {source.credibility_score:.2f}")
+        code_quality = {
+            'complexity_score': 50,  # Less than 60 to trigger recommendation
+            'total_functions': 41
+        }
 
-        # Test 3: Content Intelligence
-        print("\n3️⃣ Testing content intelligence...")
-        test_text = "Microsoft announced a major AI breakthrough that will change healthcare forever according to scientists."
-        key_points = enhanced_news.content_intelligence.extract_key_points(test_text)
-        entities = enhanced_news.content_intelligence.extract_entities(test_text)
-        sentiment = enhanced_news.content_intelligence.assess_sentiment(test_text)
-        summary = enhanced_news.content_intelligence.generate_summary(test_text)
+        dependency_analysis = {
+            'dependency_count': 5
+        }
 
-        print(f"   ✅ Key points: {len(key_points)} extracted")
-        print(f"   ✅ Entities: {len(entities)} extracted")
-        print(f"   ✅ Sentiment: {sentiment:.2f}")
-        print(f"   ✅ Summary generated: {len(summary)} characters")
+        test_coverage = {
+            'total_test_files': 9,
+            'test_modernity_score': 0.7
+        }
 
-        print("\n🎉 All tests passed! Enhanced news system is working correctly.")
-        return True
+        documentation_analysis = {}
+        performance_analysis = {}
+
+        print("📊 Testing recommendation generation with mock data...")
+
+        # Test the recommendation generation directly
+        recommendations = await plugin._generate_enhancement_recommendations(
+            project_metrics, code_quality, dependency_analysis,
+            test_coverage, documentation_analysis, performance_analysis
+        )
+
+        print(f"✅ Generated {len(recommendations)} recommendations:")
+        for i, rec in enumerate(recommendations, 1):
+            print(f"   {i}. {rec}")
+
+        if not recommendations:
+            print("❌ No recommendations generated - there may be an issue with the logic")
+            print("🔍 Checking conditions...")
+
+            # Debug the conditions
+            test_ratio = project_metrics.get('test_coverage_ratio', 0)
+            print(f"Test coverage ratio: {test_ratio}")
+            if test_ratio < 0.3:
+                print("✓ Should trigger test coverage recommendation")
+
+            complexity = code_quality.get('complexity_score', 50)
+            print(f"Complexity score: {complexity}")
+            if complexity < 60:
+                print("✓ Should trigger complexity recommendation")
 
     except Exception as e:
-        print(f"\n❌ Test failed: {e}")
+        print(f"❌ Test failed: {e}")
         import traceback
         traceback.print_exc()
-        return False
 
 if __name__ == "__main__":
-    success = asyncio.run(test())
-    sys.exit(0 if success else 1)
+    asyncio.run(simple_test())

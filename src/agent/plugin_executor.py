@@ -99,6 +99,9 @@ class PluginExecutor:
         if not time_plugin:
             return {"error": "Time plugin not available"}
 
+        # Handle both hyphen and underscore naming conventions
+        tool_name = tool_name.replace('-', '_')
+
         if tool_name == 'get_current_time':
             result = time_plugin.get_current_time()
             return {"result": result, "status": "success"}
