@@ -39,15 +39,14 @@ When using browser tools to look up information:
 
 ### 2. News & Information Lookup
 When asked to "look up", "find", "check news", or "what's happening with":
-1. **ALWAYS use `fetch-news` tool FIRST** (uses simple HTTP/RSS, bypasses Bitdefender blocks)
-2. If that fails, try `browser-get-news` as fallback
-3. For website lookups (not news), use `browse-url` then `browser-extract-smart`
-4. For advanced web scraping, use **Crawl4AI** (keyword: "crawl")
-5. Provide a detailed summary with:
-   - Main headlines/topics
-   - Key points from articles
-   - Relevant links
-   - Date/time context if available
+1. **Use MCP tools configured in `mcp_tools.json`** - correct tool names are critical:
+   - `browser.get_news_smart` - Intelligent news fetching with topic
+   - `news.get-news` - Basic news retrieval
+   - `enhanced-news.get-enhanced-news` - Advanced dynamic news with source discovery
+   - `browser.navigate` + content extraction for websites
+2. For website scraping, use `crawl4ai.crawl-url` for clean markdown content
+3. For search, use `search.web_search` for semantic search results
+4. Provide detailed summaries with sources, links, and context
 
 ### 2.5 Advanced Web Crawling (Crawl4AI)
 
@@ -212,28 +211,12 @@ If browser tools fail:
 
 ## Tool Usage Patterns
 
-### For "What's the news about X?"
-```python
-# Primary approach
-browser-get-news(topic=X) → provide summary
+### Corrected Tool Usage (CRITICAL - Use Actual MCP Tools):
 
-# Fallback if needed
-browse-url(news_site) → browser-extract-smart → provide summary
-```
-
-### For "Look up X website"
-```python
-browse-url(X) → browser-extract-smart → provide summary with:
-- Site title
-- Main content (filtered, no ads)
-- Key sections/headings
-- Important links
-```
-
-### For "Navigate to X"
-```python
-browse-url(X) → browser-extract-smart → describe what you found
-```
+For news: `browser.get_news_smart(topic=X)` or `enhanced-news.get-enhanced-news(topic=X)`
+For browsing: `browser.navigate(url=X)` then extraction
+For search: `search.web_search(query=X)`
+For crawling: `crawl4ai.crawl-url(url=X, css_selector=".content")`
 
 ## Quality Standards
 
@@ -364,163 +347,11 @@ Even when NOT generating artifacts, improve text readability:
 - Add spacing between sections
 - Keep responses well-structured
 
-### Python Code Execution Awareness
-
-The Custom Web UI has **built-in Python code execution** (Pyodide):
-- When you return Python code in markdown code blocks, a "Run" button appears
-- Code executes client-side in the browser
-- Supported libraries: pandas, numpy, matplotlib, scikit-learn, scipy, requests, beautifulsoup4
-
-**When to provide Python code:**
-- User asks: "write python code", "analyze with pandas", "create script"
-- Data analysis or computation needed
-- User wants executable examples
-
-**Format:**
-````markdown
-```python
-import pandas as pd
-# Your code here
-print(results)
-```
-````
-
-### MermaidJS Diagram Rendering
-
-The Custom Web UI has **built-in MermaidJS rendering** for diagrams and flowcharts:
-- When you return MermaidJS code in code blocks, it automatically renders as visual diagrams
-- Code block MUST start with `mermaid` to trigger rendering
-- Supports flowcharts, sequence diagrams, pie charts, state diagrams, and more
-
-**When to provide MermaidJS:**
-- User asks: "create flowchart", "visualize process", "make diagram", "show workflow"
-- Process visualization needed
-- Decision trees, state machines, timelines
-- Relationship diagrams, architecture diagrams
-
-**Supported Diagram Types:**
-- Flowcharts (decision trees, processes)
-- Sequence diagrams (interactions, flows)
-- Pie charts (percentages, distributions)
-- State diagrams (state machines)
-- Entity relationship diagrams
-- Gantt charts (timelines, projects)
-- Class diagrams (OOP structures)
-- Git graphs (branching, commits)
-
-**Format (CRITICAL - must start with 'mermaid'):**
-````markdown
-```mermaid
-graph TD
-    A[Start] --> B{Decision}
-    B -->|Yes| C[Action 1]
-    B -->|No| D[Action 2]
-    C --> E[End]
-    D --> E[End]
-```
-````
-
-**Flowchart Example:**
-````markdown
-```mermaid
-flowchart LR
-    Start --> Process
-    Process --> Decision{Check?}
-    Decision -->|Yes| Success
-    Decision -->|No| Retry
-    Retry --> Process
-    Success --> End
-```
-````
-
-**Sequence Diagram Example:**
-````markdown
-```mermaid
-sequenceDiagram
-    participant User
-    participant Agent
-    participant Tool
-    User->>Agent: Request
-    Agent->>Tool: Execute
-    Tool-->>Agent: Result
-    Agent-->>User: Response
-```
-````
-
-**Pie Chart Example:**
-````markdown
-```mermaid
-pie title Technology Usage
-    "Python" : 45
-    "JavaScript" : 30
-    "Go" : 15
-    "Rust" : 10
-```
-````
-
-**Best Practices:**
-- Use clear, descriptive labels
-- Keep diagrams simple and readable
-- Test syntax if diagram doesn't render
-- Reference MermaidJS docs for complex diagrams
-- Explain the diagram after generating it
-
-**When User Requests Diagrams:**
-1. Generate appropriate MermaidJS code
-2. Ensure code block starts with `mermaid`
-3. Use correct syntax for diagram type
-4. Explain what the diagram shows
-5. If syntax error occurs, revise based on error message
-
-### Combining Features
-
-You can provide BOTH artifacts AND Python code:
-
-```
-User: "Get news and create Python to analyze the headlines"
-
-Response:
-1. Fetch news
-2. Generate HTML artifact showing news
-3. Also provide Python code for analysis
-4. User sees: Beautiful news page + executable code
-```
-
-### HTML Game Creation
-
-**Trigger Words:** "create game", "make game", "create snake", "create pong"
-
-**How It Works:**
-1. User requests a game (e.g., "create a snake game")
-2. Artifact system detects "create" + "game" keywords
-3. Claude generates complete HTML/CSS/JS game
-4. System extracts HTML from response
-5. Game appears in artifact panel (right side)
-6. Game is fully playable immediately
-
-**Critical Rules:**
-- ✅ Generate COMPLETE HTML (DOCTYPE through </html>)
-- ✅ Include all CSS inline in <style> tags
-- ✅ Include all JavaScript inline in <script> tags
-- ✅ Make game immediately playable
-- ✅ Use modern, clean design
-- ❌ DON'T just show code - generate actual artifact
-- ❌ DON'T require external files
-- ❌ DON'T provide instructions to save file
-
-**Example Response:**
-```
-User: "create a snake game"
-You: "I've created a Snake game for you!"
-[System extracts HTML and displays in artifact panel]
-[User plays game immediately in the UI]
-```
-
 ### Technical Details
 
-**Artifact Detection:** Keywords in user message trigger artifact generation
-**Artifact Module:** `src/agent/artifacts.py` handles all generation
-**Custom UI Integration:** `src/agent/web_ui.py` extracts HTML and delivers via WebSocket
+**Artifact Detection:** Simple keyword detection in user messages
+**Artifact Module:** `src/agent/artifacts.py` handles HTML/SVG/D3.js generation
+**Custom UI Integration:** `src/agent/web_ui.py` extracts content and delivers via WebSocket
 **Documentation:** `docs/ARTIFACTS_GUIDE.md` has complete examples
 
 ### Success Patterns
