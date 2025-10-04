@@ -35,6 +35,3 @@ ENV/
 
 # Session data
 .memory/
-
-# Sensitive files
-.env.example
