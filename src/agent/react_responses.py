@@ -149,7 +149,7 @@ def format_enhancement_plan_response(analysis_data: Dict[str, Any]) -> str:
     ]
     for heading, items in sections:
         if items:
-            _add_section(response_parts, heading, [f"{idx}. {value}" for idx, value in enumerate(items, start=1)])
+            _add_section(response_parts, heading, [f"{idx}. {item}" for idx, item in enumerate(items, start=1)])
 
     resources = enhancement_plan.get('resource_estimation', {})
     if resources:

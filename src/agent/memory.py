@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 from threading import Lock
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Any
 from .models import MemoryStore, Session
 
 class MemoryStoreFileImpl(MemoryStore):
