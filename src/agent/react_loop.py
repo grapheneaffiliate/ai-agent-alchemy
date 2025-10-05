@@ -69,8 +69,8 @@ class ToolMetrics:
 
 async def execute_react_loop(
     user_input: str,
-    agent: 'AgentAPI',
-    plugin_executor: 'PluginExecutor',
+    agent: Any,
+    plugin_executor: Any,
     max_iterations: int = 3,  # Reduced from 5 for faster responses
     timeout: float = 30.0  # Overall timeout to prevent hanging
 ) -> Tuple[str, Optional[str]]:

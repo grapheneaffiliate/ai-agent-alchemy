@@ -136,7 +136,7 @@ class PluginExecutor:
             "plugin execution error",
             extra=with_fields(server=server, tool=tool_name, context_id=context_id, reason=reason),
         )
-        raise PluginExecutionError(server=server, tool=tool_name, reason=reason, context_id=context_id)
+        raise PluginExecutionError(server=server, tool=tool_name, reason=reason)
 
     async def _execute_time_tool(self, tool_name: str, args: Dict[str, Any]) -> Dict[str, Any]:
         """Execute time-related tools."""
