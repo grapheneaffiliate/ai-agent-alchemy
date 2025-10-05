@@ -1,4 +1,4 @@
-# MCP AI Agent Changelog
+﻿# MCP AI Agent Changelog
 
 All notable changes to the MCP AI Agent will be documented in this file.
 
@@ -7,11 +7,11 @@ All notable changes to the MCP AI Agent will be documented in this file.
 ### Test Suite Reorganization and Improvements
 
 #### Integration Tests
-- ✅ **6 passed, 0 failed**: Reorganized integration suite now contains only automated integration checks and succeeds cleanly
+- âœ… **6 passed, 0 failed**: Reorganized integration suite now contains only automated integration checks and succeeds cleanly
 - **What Changed**: Moved manual integration checks out of automated CI/CD pipeline to ensure reliable, headless test execution
 
 #### Contract Tests
-- ✅ **4 passed, 0 failed**: Updated CLI handling for production deployment readiness (after removing problematic failure case test)
+- âœ… **4 passed, 0 failed**: Updated CLI handling for production deployment readiness (after removing problematic failure case test)
 - **What Changed**:
   - Implemented `--name` option handling as CLI argument (not configuration option)
   - Added robust sanitization of quoted values in CLI input
@@ -20,7 +20,7 @@ All notable changes to the MCP AI Agent will be documented in this file.
   - Restored compatibility with older test helpers by re-exporting legacy class name (src/plugins/time_utils.py:74 now defines TimeUtils = TimePlugin)
 
 #### Unit Tests
-- ✅ **69 passed, 0 failed**: Clean unit test suite with automated execution (0 warnings)
+- âœ… **69 passed, 0 failed**: Clean unit test suite with automated execution (0 warnings)
 - **What Changed**:
   - Extracted manual async scripts to `scripts/manual/unit_legacy/` directory
   - Reorganized test suite to separate automated unit tests from manual/integration tests
@@ -33,6 +33,11 @@ All notable changes to the MCP AI Agent will be documented in this file.
 
 ### Added
 - `scripts/manual/unit_legacy/` directory for manual test scripts that require async environments
+
+### Documentation Alignment
+- Updated `.clinerules` to match the streamlined repository layout, current CLI usage, and PowerShell requirements.
+- Refreshed `README.md` with accurate quick-start instructions, test commands, and script locations.
+- Clarified documentation sources (active guides vs. archived reports) and emphasised CHANGELOG updates for future structural changes.
 
 ### Changed
 - Test suite structure now separates automated vs manual execution
@@ -50,3 +55,6 @@ All notable changes to the MCP AI Agent will be documented in this file.
   - `python -m pytest tests/unit -q` (69 passed, 0 warnings - fully clean)
 
 **Total Test Count**: 79 tests passing (6 integration + 4 contract + 69 unit)
+
+
+
