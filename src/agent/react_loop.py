@@ -8,11 +8,7 @@ import logging
 from typing import List, Tuple, Dict, Any, Optional
 from collections import defaultdict
 from .artifacts import ArtifactGenerator
-try:
-    from ..plugins.search import SearchPlugin  # For citation post-processing
-except ImportError:
-    # Fallback for when running as a module
-    from src.plugins.search import SearchPlugin
+from src.plugins.search import SearchPlugin  # For citation post-processing
 from .react_responses import (
     format_health_analysis_response,
     format_comprehensive_analysis_response,
@@ -73,8 +69,8 @@ class ToolMetrics:
 
 async def execute_react_loop(
     user_input: str,
-    agent: 'AgentAPI',
-    plugin_executor: 'PluginExecutor',
+    agent: Any,
+    plugin_executor: Any,
     max_iterations: int = 3,  # Reduced from 5 for faster responses
     timeout: float = 30.0  # Overall timeout to prevent hanging
 ) -> Tuple[str, Optional[str]]:

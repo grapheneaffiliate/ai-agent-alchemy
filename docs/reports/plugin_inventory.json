@@ -1,0 +1,56 @@
+[
+  {
+    "name": "analysis",
+    "owner": "@grapheneaffiliate",
+    "path": "src/plugins/analysis.py",
+    "summary": ""
+  },
+  {
+    "name": "crawl4ai_plugin",
+    "owner": "@grapheneaffiliate",
+    "path": "src/plugins/crawl4ai_plugin.py",
+    "summary": "Crawl4AI integration plugin for advanced web scraping with clean output."
+  },
+  {
+    "name": "enhanced_news",
+    "owner": "@grapheneaffiliate",
+    "path": "src/plugins/enhanced_news.py",
+    "summary": "Orchestrator for the enhanced news plugin."
+  },
+  {
+    "name": "enhanced_news_components",
+    "owner": "@grapheneaffiliate",
+    "path": "src/plugins/enhanced_news_components.py",
+    "summary": ""
+  },
+  {
+    "name": "kokoro_tts",
+    "owner": "@grapheneaffiliate",
+    "path": "src/plugins/kokoro_tts.py",
+    "summary": "Kokoro TTS integration plugin."
+  },
+  {
+    "name": "leann_plugin",
+    "owner": "@grapheneaffiliate",
+    "path": "src/plugins/leann_plugin.py",
+    "summary": "Plugin for LEANN vector database integration."
+  },
+  {
+    "name": "news_fetch",
+    "owner": "@grapheneaffiliate",
+    "path": "src/plugins/news_fetch.py",
+    "summary": "Simple HTTP-based news fetcher that bypasses browser automation."
+  },
+  {
+    "name": "search",
+    "owner": "@grapheneaffiliate",
+    "path": "src/plugins/search.py",
+    "summary": "Plugin for web search using Google News RSS feed."
+  },
+  {
+    "name": "time_utils",
+    "owner": "@grapheneaffiliate",
+    "path": "src/plugins/time_utils.py",
+    "summary": ""
+  }
+]

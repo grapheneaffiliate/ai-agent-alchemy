@@ -1,8 +1,15 @@
 """Plugin executor for calling actual tool implementations."""
 
-from typing import Dict, Any
+from typing import Any, Dict, cast
 import json
 from dataclasses import asdict
+
+from .errors import PluginExecutionError
+from .logging_utils import get_context_id, get_logger, with_fields
+from .utils.retry import retry_async
+
+logger = get_logger(__name__)
+_RETRYABLE_SERVERS = {"browser", "news", "crawl4ai", "search", "enhanced-news"}
 
 
 class PluginExecutor:
@@ -73,31 +80,67 @@ class PluginExecutor:
 
     async def execute(self, server: str, tool_name: str, args: Dict[str, Any]) -> Dict[str, Any]:
         """Execute a tool by server and tool name."""
-        try:
+        context_id = get_context_id()
+
+        async def dispatch() -> Dict[str, Any]:
             if server == 'time':
                 return await self._execute_time_tool(tool_name, args)
-            elif server == 'browser':
+            if server == 'browser':
                 return await self._execute_browser_tool(tool_name, args)
-            elif server == 'news':
+            if server == 'news':
                 return await self._execute_news_tool(tool_name, args)
-            elif server == 'crawl4ai':
+            if server == 'crawl4ai':
                 return await self._execute_crawl4ai_tool(tool_name, args)
-            elif server == 'search':
+            if server == 'search':
                 return await self._execute_search_tool(tool_name, args)
-            elif server == 'enhanced-news':
+            if server == 'enhanced-news':
                 return await self._execute_enhanced_news_tool(tool_name, args)
-            elif server == 'leann':
+            if server == 'leann':
                 return await self._execute_leann_tool(tool_name, args)
+            reason = f"Server '{server}' not implemented"
+            self._fail(server, tool_name, reason)
+
+        try:
+            if server in _RETRYABLE_SERVERS:
+                result = await retry_async(dispatch)
             else:
-                return {"result": f"Server '{server}' not implemented yet", "status": "stub"}
-        except Exception as e:
-            return {"error": str(e), "status": "error"}
+                result = await dispatch()
+        except PluginExecutionError:
+            raise
+        except Exception as exc:
+            with_fields_logger = get_logger(__name__).bind(server=server, tool=tool_name, context_id=context_id)
+            with_fields_logger.exception("plugin execution failed")
+            raise PluginExecutionError(server=server, tool=tool_name, reason=str(exc), plugin_name=server) from exc
+
+        status = result.get("status")
+        if status != "success":
+            reason = result.get("error", str(status))
+            logger.warning(
+                "plugin returned non-success status",
+                extra=with_fields(server=server, tool=tool_name, context_id=context_id, status=status, reason=reason),
+            )
+            raise PluginExecutionError(server=server, tool=tool_name, reason=reason, plugin_name=server)
+
+        logger.info(
+            "plugin executed",
+            extra=with_fields(server=server, tool=tool_name, context_id=context_id),
+        )
+        return result
+
+    def _fail(self, server: str, tool_name: str, reason: str) -> None:
+        """Normalize plugin failures."""
+        context_id = get_context_id()
+        logger.error(
+            "plugin execution error",
+            extra=with_fields(server=server, tool=tool_name, context_id=context_id, reason=reason),
+        )
+        raise PluginExecutionError(server=server, tool=tool_name, reason=reason)
 
     async def _execute_time_tool(self, tool_name: str, args: Dict[str, Any]) -> Dict[str, Any]:
         """Execute time-related tools."""
         time_plugin = self.plugins.get('time')
         if not time_plugin:
-            return {"error": "Time plugin not available"}
+            self._fail('time', tool_name, "Time plugin not available")
 
         # Handle both hyphen and underscore naming conventions
         tool_name = tool_name.replace('-', '_')
@@ -116,20 +159,20 @@ class PluginExecutor:
             result = time_plugin.format_datetime(format_string)
             return {"result": result, "status": "success"}
         else:
-            return {"error": f"Unknown time tool: {tool_name}"}
+            self._fail('time', tool_name, f"Unknown time tool: {tool_name}")
 
     async def _execute_browser_tool(self, tool_name: str, args: Dict[str, Any]) -> Dict[str, Any]:
         """Execute browser-related tools."""
         browser_getter = self.plugins.get('browser')
         if not browser_getter:
-            return {"error": "Browser plugin not available"}
+            self._fail('browser', tool_name, "Browser plugin not available")
 
         browser = await browser_getter()
 
         if tool_name == 'navigate':
             url = args.get('url')
             if not url:
-                return {"error": "URL required for navigate"}
+                self._fail('browser', tool_name, "URL required for navigate")
             result = await browser.navigate(url)
             return {"result": result, "status": "success"}
         elif tool_name == 'screenshot':
@@ -139,20 +182,20 @@ class PluginExecutor:
         elif tool_name == 'click':
             selector = args.get('selector')
             if not selector:
-                return {"error": "Selector required for click"}
+                self._fail('browser', tool_name, "Selector required for click")
             result = await browser.click(selector)
             return {"result": result, "status": "success"}
         elif tool_name == 'fill':
             selector = args.get('selector')
             text = args.get('text')
             if not selector or not text:
-                return {"error": "Selector and text required for fill"}
+                self._fail('browser', tool_name, "Selector and text required for fill")
             result = await browser.fill(selector, text)
             return {"result": result, "status": "success"}
         elif tool_name == 'extract-text':
             selector = args.get('selector')
             if not selector:
-                return {"error": "Selector required for extract"}
+                self._fail('browser', tool_name, "Selector required for extract")
             result = await browser.extract_text(selector)
             return {"result": result, "status": "success"}
         elif tool_name == 'get-links':
@@ -223,7 +266,7 @@ class PluginExecutor:
             query = args.get('query', '')
             num_results = int(args.get('num_results', 10))
             result = await search.web_search(query, num_results)
-            return result
+            return cast(Dict[str, Any], result)
         else:
             return {"error": f"Unknown search tool: {tool_name}"}
 
@@ -257,4 +300,4 @@ class PluginExecutor:
 
         # Call the plugin's execute method directly
         result = await leann_plugin.execute('leann', tool_name, args)
-        return result
+        return cast(Dict[str, Any], result)

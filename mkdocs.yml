@@ -1,0 +1,273 @@
+# MkDocs configuration for MCP AI Agent API Documentation
+
+site_name: "MCP AI Agent"
+site_description: "Modular CLI AI Agent with MCP Integration - API Documentation"
+site_author: "AI Assistant"
+site_url: "https://example.com/mcp-ai-agent"
+
+# Repository
+repo_url: "https://github.com/your-org/mcp-ai-agent"
+repo_name: "your-org/mcp-ai-agent"
+edit_uri: "edit/main/docs/"
+
+# Copyright
+copyright: "Copyright &copy; 2025 AI Assistant"
+
+# Configuration
+use_directory_urls: true
+strict: true
+
+# Theme configuration
+theme:
+  name: "material"
+  language: "en"
+
+  # Color scheme
+  palette:
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: "material/brightness-auto"
+        name: "Switch to light mode"
+    - media: "(prefers-color-scheme: light)"
+      scheme: "default"
+      primary: "blue"
+      accent: "blue"
+      toggle:
+        icon: "material/brightness-7"
+        name: "Switch to dark mode"
+    - media: "(prefers-color-scheme: dark)"
+      scheme: "slate"
+      primary: "blue"
+      accent: "blue"
+      toggle:
+        icon: "material/brightness-4"
+        name: "Switch to system preference"
+
+  # Logo and favicon
+  logo: "logo.png"
+  favicon: "favicon.ico"
+
+  # Navigation features
+  features:
+    - announce.dismiss
+    - content.action.edit
+    - content.action.view
+    - content.code.annotate
+    - content.code.copy
+    - content.code.select
+    - content.footnote.tooltips
+    - content.tabs.link
+    - content.tooltips
+    - header.autohide
+    - navigation.expand
+    - navigation.footer
+    - navigation.indexes
+    - navigation.instant
+    - navigation.instant.prefetch
+    - navigation.instant.progress
+    - navigation.prune
+    - navigation.sections
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.top
+    - navigation.tracking
+    - search.highlight
+    - search.share
+    - search.suggest
+    - toc.follow
+    - toc.integrate
+
+  # Custom icons
+  icon:
+    repo: "fontawesome/brands/github"
+    edit: "material/pencil"
+    view: "material/eye"
+    previous: "fontawesome/solid/angle-left"
+    next: "fontawesome/solid/angle-right"
+
+# Plugins
+plugins:
+  - search:
+      separator: '[\s\u200b\-_,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
+  - minify:
+      minify_html: true
+  - git-revision-date-localized:
+      enable_creation_date: true
+      type: timeago
+  - git-committers:
+      repository: your-org/mcp-ai-agent
+      branch: main
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_options:
+              ignore_init_summary: true
+            docstring_section_style: "table"
+            heading_level: 1
+            inherited_members: true
+            merge_init_into_class: true
+            separate_signature: true
+            show_bases: true
+            show_category_heading: true
+            show_docstring_attributes: true
+            show_docstring_functions: true
+            show_docstring_classes: true
+            show_docstring_modules: true
+            show_if_no_docstring: true
+            show_inheritance_diagram: true
+            show_labels: true
+            show_object_full_path: false
+            show_root_full_path: false
+            show_root_heading: true
+            show_root_toc_entry: true
+            show_signature: true
+            show_signature_annotations: true
+            show_submodules: true
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            signature_crossrefs: true
+            summary: true
+
+# Customization
+extra:
+  version:
+    provider: "mike"
+    default: "latest"
+
+  social:
+    - icon: "fontawesome/brands/github"
+      link: "https://github.com/your-org/mcp-ai-agent"
+      name: "GitHub Repository"
+    - icon: "fontawesome/brands/python"
+      link: "https://pypi.org/project/mcp-ai-agent/"
+      name: "PyPI Package"
+    - icon: "fontawesome/solid/globe"
+      link: "https://example.com/mcp-ai-agent"
+      name: "Project Homepage"
+
+  generator: false
+
+# Extensions
+markdown_extensions:
+  # Python Markdown
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - meta
+  - tables
+  - toc:
+      permalink: true
+      permalink_title: "Anchor link to this section for reference"
+
+  # Python Markdown Extensions
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterost:
+      permalink: true
+      permalink_title: "Anchor link to this section for reference"
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.magiclink:
+      normalize_issue_symbols: true
+      repo_url_shorthand: true
+      user: your-org
+      repo: mcp-ai-agent
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.snippets:
+      check_paths: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: "mermaid"
+          class: "mermaid"
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+      combine_header_slug: true
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+# Navigation structure
+nav:
+  - Home:
+      - Overview: "index.md"
+      - "Quick Start": "quickstart.md"
+      - Installation: "installation.md"
+      - Configuration: "configuration.md"
+
+  - User Guide:
+      - "CLI Usage": "cli-usage.md"
+      - "Plugin Development": "plugin-development.md"
+      - "Custom Tools": "custom-tools.md"
+      - "Error Handling": "error-handling.md"
+      - Troubleshooting: "troubleshooting.md"
+
+  - API Reference:
+      - Agent Core: "api/agent-core.md"
+      - Plugin System: "api/plugin-system.md"
+      - Error Types: "api/errors.md"
+      - Logging: "api/logging.md"
+      - Metrics: "api/metrics.md"
+      - Retry Logic: "api/retry-utils.md"
+
+  - Plugin Documentation:
+      - "Plugin Overview": "plugins/index.md"
+      - Analysis Plugin: "plugins/analysis.md"
+      - Browser Plugin: "plugins/browser.md"
+      - Enhanced News: "plugins/enhanced-news.md"
+      - LEANN Plugin: "plugins/leann.md"
+      - Search Plugin: "plugins/search.md"
+      - Time Utils: "plugins/time-utils.md"
+
+  - Development:
+      - "Contributing": "contributing.md"
+      - "Development Setup": "development-setup.md"
+      - "Testing Guide": "testing-guide.md"
+      - "Async Migration": "async-migration.md"
+      - "Typing Guide": "typing-guide.md"
+      - "Architecture": "architecture.md"
+
+  - Operations:
+      - Deployment: "deployment.md"
+      - Monitoring: "monitoring.md"
+      - "CI/CD Pipeline": "cicd-pipeline.md"
+      - "Performance Tuning": "performance-tuning.md"
+
+  - Changelog: "changelog.md"
+
+# CSS and JavaScript
+extra_css:
+  - "stylesheets/extra.css"
+
+extra_javascript:
+  - "javascripts/extra.js"
+  - "javascripts/mermaid.min.js"
+
+# Build directories
+docs_dir: "docs"
+site_dir: "site"
+
+# Watch directories for changes
+watch:
+  - "src"
+  - "docs"
+
+# Development server
+dev_addr: "127.0.0.1:8000"

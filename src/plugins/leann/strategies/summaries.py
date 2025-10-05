@@ -137,20 +137,62 @@ class ArchitectureSummarizer:
         metrics = self._collect_code_metrics(max_files=120)
         totals = metrics.get("totals", {})
         recs: List[str] = []
+        seen: set[str] = set()
 
-        if totals.get("async_functions", 0) and totals.get("await_sites", 0) < totals["async_functions"]:
-            recs.append("- Audit async functions to ensure every coroutine is awaited")
-        if totals.get("test_files", 0) < max(1, totals.get("python_files", 0) // 4):
-            recs.append("- Increase integration test coverage for new plugins")
-        if totals.get("doc_files", 0) < 5:
-            recs.append("- Add more task-focused docs under docs/ to guide contributors")
+        def add(rec: str) -> None:
+            if rec not in seen:
+                recs.append(rec)
+                seen.add(rec)
+
+        if totals:
+            python_files = totals.get("python_files", 0)
+            test_files = totals.get("test_files", 0)
+            plugin_files = totals.get("plugin_files", 0)
+            doc_files = totals.get("doc_files", 0)
+            avg_lines = totals.get("avg_lines_per_file", 0)
+            func_count = totals.get("func_count", 0)
+            async_count = totals.get("async_functions", 0)
+            import_count = totals.get("import_count", 0)
+
+            if avg_lines > 180:
+                add(f"- Split oversized modules; average files weigh in at {avg_lines:.0f} lines each")
+
+            if python_files:
+                test_ratio = test_files / python_files
+                if test_files >= 10 and test_ratio > 0.65:
+                    add(f"- Curate high-signal regression suites so the {test_ratio * 100:.0f}% test footprint stays maintainable")
+                elif test_files < max(3, python_files // 4):
+                    add("- Increase integration test coverage for new plugins")
+
+            if func_count >= 20:
+                async_ratio = async_count / func_count if func_count else 0.0
+                if async_ratio < 0.4:
+                    add(f"- Expand async coverage for I/O-heavy paths (async handles {async_ratio * 100:.0f}% of {func_count} sampled functions)")
+                elif async_ratio > 0.7 and import_count > 50:
+                    add("- Add observability around heavily async flows to surface cascading timeouts")
+
+            if plugin_files >= 8:
+                add(f"- Catalogue the {plugin_files} plugin modules by capability and ownership to speed triage")
+
+                if doc_files and doc_files < max(5, plugin_files):
+                    add(f"- Add plugin playbooks; {plugin_files} plugins but only {doc_files} docs cover them")
+                elif doc_files >= 20:
+                    add(f"- Cross-link plugin documentation; {plugin_files} plugins spread across {doc_files} docs can use an indexed guide")
+
+            if doc_files < 5:
+                add("- Add more task-focused docs under docs/ to guide contributors")
+
+            if import_count >= 80:
+                add(f"- Map cross-module dependencies; {import_count} imports surfaced in the sampled files")
+
         if not recs:
-            recs.append("- Maintain current quality bar and continue incremental improvements")
+            add("- Maintain current quality bar and continue incremental improvements")
 
         return (
             "# Targeted Improvement Ideas\n\n"
             + "\n".join(recs)
         )
+
 
     # Internal utilities ---------------------------------------------------------
 
@@ -166,6 +208,9 @@ class ArchitectureSummarizer:
             "test_files": len([f for f in py_files if "tests" in f.parts]),
             "avg_lines_per_file": self._average_line_count(metrics.get("line_counts", {})),
             "await_sites": metrics.get("func_count", 0) - metrics.get("async_count", 0),
+            "func_count": metrics.get("func_count", 0),
+            "class_count": metrics.get("class_count", 0),
+            "import_count": metrics.get("import_count", 0),
         }
         return {"totals": totals}
 

@@ -1,0 +1,9 @@
+from typing import Any, Protocol
+
+
+class Crawl4AIClient(Protocol):
+    async def crawl_url(self, url: str, css_selector: str | None = None) -> Any: ...
+    async def ask_question(self, url: str, question: str) -> Any: ...
+
+
+async def get_crawl4ai() -> Crawl4AIClient: ...
