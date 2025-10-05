@@ -8,6 +8,7 @@ import logging
 from typing import List, Tuple, Dict, Any, Optional
 from collections import defaultdict
 from .artifacts import ArtifactGenerator
+from .plugin_executor import PluginExecutor
 from src.plugins.search import SearchPlugin  # For citation post-processing
 from .react_responses import (
     format_health_analysis_response,
