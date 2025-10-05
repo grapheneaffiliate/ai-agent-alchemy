@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 """
 Verification script for structured logging implementation across the ReAct loop, browser tooling, and enhanced news pipeline.
 """
@@ -8,8 +9,11 @@ import logging
 import sys
 import os
 
+REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+sys.path.insert(0, REPO_ROOT)
+sys.path.insert(0, os.path.join(REPO_ROOT, 'src'))
+
 # Add the src directory to the path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
 from agent.react_loop import ToolMetrics, execute_react_loop
 from plugins.browser import BrowserPlugin

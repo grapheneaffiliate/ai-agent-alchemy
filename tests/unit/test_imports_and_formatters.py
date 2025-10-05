@@ -12,11 +12,9 @@ def test_imports():
         from agent.react_responses import format_enhancement_plan_response
         from plugins.browser import BrowserPlugin
         from plugins.enhanced_news_components import ContentIntelligence
-        print('✅ All imports successful')
-        return True
+        assert True, "All imports should work correctly"
     except Exception as e:
-        print(f'❌ Import failed: {e}')
-        return False
+        assert False, f'Import failed: {e}'
 
 def test_formatter():
     """Test the formatter with corrected data structure"""
@@ -33,14 +31,12 @@ def test_formatter():
         }
 
         response = format_enhancement_plan_response(test_data)
-        print(f'✅ Formatter working - response length: {len(response)} characters')
-        print(f'✅ Contains "enhancement": {"enhancement" in response.lower()}')
-        print(f'✅ Contains "immediate actions": {"immediate actions" in response.lower()}')
-        print(f'✅ Contains "short-term improvements": {"short-term improvements" in response.lower()}')
-        return True
+        assert len(response) > 0, "Response should not be empty"
+        assert "enhancement" in response.lower(), "Response should contain 'enhancement'"
+        assert "immediate actions" in response.lower(), "Response should contain 'immediate actions'"
+        assert "short-term improvements" in response.lower(), "Response should contain 'short-term improvements'"
     except Exception as e:
-        print(f'❌ Formatter test failed: {e}')
-        return False
+        assert False, f'Formatter test failed: {e}'
 
 def test_tool_metrics():
     """Test ToolMetrics functionality"""
@@ -50,11 +46,9 @@ def test_tool_metrics():
         metrics = ToolMetrics()
         metrics.record_tool_use('test.tool', 1.0, True)
         summary = metrics.get_metrics_summary()
-        print(f'✅ ToolMetrics working: {summary["total_tool_calls"]} tools recorded')
-        return True
+        assert summary["total_tool_calls"] == 1, "Should have recorded one tool call"
     except Exception as e:
-        print(f'❌ ToolMetrics test failed: {e}')
-        return False
+        assert False, f'ToolMetrics test failed: {e}'
 
 if __name__ == "__main__":
     print("🧪 Testing MCP AI Agent Components")
@@ -63,13 +57,37 @@ if __name__ == "__main__":
     all_passed = True
 
     print("\n1. Testing imports...")
-    all_passed &= test_imports()
+    try:
+        test_imports()
+        print("✅ Imports test passed")
+    except AssertionError as e:
+        print(f"❌ Imports test failed: {e}")
+        all_passed = False
+    except Exception as e:
+        print(f"❌ Unexpected error in imports: {e}")
+        all_passed = False
 
     print("\n2. Testing response formatter...")
-    all_passed &= test_formatter()
+    try:
+        test_formatter()
+        print("✅ Formatter test passed")
+    except AssertionError as e:
+        print(f"❌ Formatter test failed: {e}")
+        all_passed = False
+    except Exception as e:
+        print(f"❌ Unexpected error in formatter: {e}")
+        all_passed = False
 
     print("\n3. Testing ToolMetrics...")
-    all_passed &= test_tool_metrics()
+    try:
+        test_tool_metrics()
+        print("✅ ToolMetrics test passed")
+    except AssertionError as e:
+        print(f"❌ ToolMetrics test failed: {e}")
+        all_passed = False
+    except Exception as e:
+        print(f"❌ Unexpected error in ToolMetrics: {e}")
+        all_passed = False
 
     print("\n" + "=" * 50)
     if all_passed:

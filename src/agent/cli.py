@@ -1,5 +1,4 @@
 import typer
-import asyncio
 from typing import Dict, Any, Optional
 import json
 from .core import Agent
@@ -11,26 +10,39 @@ cli_app = typer.Typer(help="Modular CLI AI Agent with MCP Integration")
 def run():
     """Start interactive AI agent session."""
     agent = Agent()
-    asyncio.run(agent.run_sync())
+    agent.run_sync()
 
 @cli_app.command()
 def add_tool(
-    name: str = typer.Argument(..., help="Tool name"),
+    name: str = typer.Option(..., "--name", "-n", help="Tool name"),
     server: str = typer.Option(..., help="MCP server name"),
     tool_name: str = typer.Option(..., help="Tool name in server"),
     args_schema: Optional[str] = typer.Option(None, help="JSON schema for args"),
 ):
     """Add a new MCP tool to config."""
     loader = MCPLoader()
+    strip_chars = '"\''
+    name = name.strip(strip_chars)
+    server = server.strip(strip_chars)
+    tool_name = tool_name.strip(strip_chars)
     tool_data: Dict[str, Any] = {
         "name": name,
         "server": server,
         "tool_name": tool_name,
     }
     if args_schema:
-        tool_data["args_schema"] = json.loads(args_schema)
+        try:
+            parsed_schema = json.loads(args_schema)
+            if isinstance(parsed_schema, str):
+                parsed_schema = json.loads(parsed_schema)
+            if not isinstance(parsed_schema, dict):
+                raise json.JSONDecodeError('Schema must be JSON object', args_schema, 0)
+            tool_data["args_schema"] = parsed_schema
+        except json.JSONDecodeError:
+            typer.echo("Failed to add tool: Invalid schema.", err=True)
+            return
     if loader.add_tool(tool_data):
-        print(f"Tool '{name}' added successfully.")
+        typer.echo(f"Tool '{name}' added successfully.")
     else:
         typer.echo("Failed to add tool: Invalid schema.", err=True)
 

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 """
 Force Fresh LEANN Analysis Script
 
@@ -12,8 +13,11 @@ import shutil
 import logging
 from pathlib import Path
 
+REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+sys.path.insert(0, REPO_ROOT)
+sys.path.insert(0, os.path.join(REPO_ROOT, 'src'))
+
 # Add src to path for imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
 def clear_leann_cache():
     """Clear LEANN cache directories to force fresh analysis."""

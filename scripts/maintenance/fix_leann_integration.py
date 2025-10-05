@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
+
 """
 Ultimate LEANN Integration Fix Script
 Fixes the routing logic in React loop for specific LEANN tools
 """
+
+REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+sys.path.insert(0, REPO_ROOT)
+sys.path.insert(0, os.path.join(REPO_ROOT, 'src'))
 
 def fix_react_loop_routing():
     """Fix the React loop to route different questions to appropriate LEANN tools."""

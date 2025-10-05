@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 """
 Simple verification script for the improvements made.
 """
@@ -8,12 +9,15 @@ import os
 import asyncio
 import inspect
 
+REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+sys.path.insert(0, REPO_ROOT)
+sys.path.insert(0, os.path.join(REPO_ROOT, 'src'))
+
 def verify_analysis_plugin():
     """Verify that analysis plugin has async integration."""
     print("Verifying analysis plugin async integration...")
 
     try:
-        sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
         from plugins.analysis import ReplPlugin
 
         plugin = ReplPlugin()
@@ -50,7 +54,6 @@ def verify_api_return_annotation():
     print("Verifying API return annotation...")
 
     try:
-        sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
         from agent.api import AgentAPI
 
         # Check the source code for return annotation

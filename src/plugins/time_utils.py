@@ -1,4 +1,4 @@
-"""Time and date utilities for MCP AI Agent."""
+﻿"""Time and date utilities for MCP AI Agent."""
 
 from datetime import datetime
 from typing import Dict, Any
@@ -75,7 +75,10 @@ class TimePlugin:
         }
 
 
-# Singleton instance for Eastern Time (Washington DC)
+
+class TimeUtils(TimePlugin):
+    """Backward compatible alias for TimePlugin."""
+    pass# Singleton instance for Eastern Time (Washington DC)
 _time_instance: TimePlugin = None
 
 
@@ -116,3 +119,4 @@ async def execute(server: str, tool_name: str, args: Dict[str, Any]) -> Dict[str
 
     except Exception as e:
         return {"status": "error", "error": str(e)}
+

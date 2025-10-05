@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 """
 Final Cache Solution - Direct LEANN Analysis Override
 
@@ -12,6 +13,10 @@ import os
 import sys
 from pathlib import Path
 from datetime import datetime
+
+REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+sys.path.insert(0, REPO_ROOT)
+sys.path.insert(0, os.path.join(REPO_ROOT, 'src'))
 
 def create_permanent_override():
     """Create a permanent override for the LEANN analysis system."""

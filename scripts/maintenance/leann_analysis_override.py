@@ -1,3 +1,6 @@
+REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+sys.path.insert(0, REPO_ROOT)
+sys.path.insert(0, os.path.join(REPO_ROOT, 'src'))
 
 # LEANN Analysis Override Patch
 # This patch ensures the analysis reflects the current improved state
