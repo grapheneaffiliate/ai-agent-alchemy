@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "mcp-ai-agent"
-version = "0.1.0"
+version = "1.0.0"
 description = "Modular CLI AI Agent with MCP Integration"
 authors = [{name = "AI Assistant", email = "ai@example.com"}]
 dependencies = [
@@ -22,8 +22,18 @@ requires-python = ">=3.11"
 
 [project.optional-dependencies]
 test = [
+    "pytest-asyncio>=0.23.0",
     "pytest-cov",
     "pytest-mock",
+]
+
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-cov",
+    "pytest-mock",
+    "ruff>=0.6.0",
+    "mypy>=1.10.0",
 ]
 
 [project.scripts]
@@ -31,3 +41,6 @@ agent = "agent.cli:cli_app"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/agent"]
+
+[tool.pytest.ini_options]
+asyncio_default_fixture_loop_scope = "session"
