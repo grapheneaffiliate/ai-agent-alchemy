@@ -122,25 +122,27 @@ class Session:
     
     def __init__(self, id: str, history: Optional[List[Dict[str, str]]] = None,
                  current_task: Optional[str] = None, loaded_tools: Optional[List[MCPTool]] = None,
-                 created_at: Optional[datetime] = None):
+                 created_at: Optional[datetime] = None, updated_at: Optional[datetime] = None):
         """Initialize a new session.
-        
+
         Args:
             id: Unique session identifier
             history: Optional conversation history
             current_task: Optional current task description
             loaded_tools: Optional list of available tools
             created_at: Optional creation timestamp (defaults to now)
+            updated_at: Optional update timestamp (defaults to now)
         """
         self.id = id
         self.history = history or []
         self.current_task = current_task
         self.loaded_tools = loaded_tools or []
         self.created_at = created_at or datetime.now()
+        self.updated_at = updated_at or datetime.now()
 
     def model_dump(self) -> Dict[str, Any]:
         """Serialize session to dictionary format.
-        
+
         Returns:
             Dictionary representation of the session
         """
@@ -149,27 +151,30 @@ class Session:
             "history": self.history,
             "current_task": self.current_task,
             "loaded_tools": [tool.model_dump() for tool in self.loaded_tools],
-            "created_at": self.created_at.isoformat()
+            "created_at": self.created_at.isoformat(),
+            "updated_at": self.updated_at.isoformat()
         }
 
     @classmethod
     def model_validate(cls, data: Dict[str, Any]) -> 'Session':
         """Create session instance from dictionary data.
-        
+
         Args:
             data: Dictionary containing session data
-            
+
         Returns:
             New Session instance
         """
         loaded_tools = [MCPTool.model_validate(tool_data) for tool_data in data.get("loaded_tools", [])]
         created_at = datetime.fromisoformat(data["created_at"]) if "created_at" in data else datetime.now()
+        updated_at = datetime.fromisoformat(data["updated_at"]) if "updated_at" in data else datetime.now()
         return cls(
             id=data["id"],
             history=data.get("history", []),
             current_task=data.get("current_task"),
             loaded_tools=loaded_tools,
-            created_at=created_at
+            created_at=created_at,
+            updated_at=updated_at
         )
 
 

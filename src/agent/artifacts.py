@@ -334,7 +334,7 @@ class ArtifactGenerator:
         
         # Enhanced parsing for news articles
         # Look for patterns like: "Title • Source • Time • Summary"
-        articles = []
+        articles: List[Dict[str, Any]] = []
         
         # Pattern 1: Lines with bullets (•) often indicate news items
         bullet_pattern = r'\*(.+?)•(.+?)•(.+?)•(.+?)(?:\n|$)'

@@ -66,8 +66,13 @@ class MemoryStoreFileImpl(MemoryStore):
         """Get recent sessions with optional time filters."""
         from datetime import datetime
 
-        def parse_time(t: str) -> datetime:
-            return datetime.fromisoformat(t.replace('Z', '+00:00')) if t else datetime.min
+        def parse_time(t: Any) -> datetime:
+            if isinstance(t, str):
+                return datetime.fromisoformat(t.replace('Z', '+00:00')) if t else datetime.min
+            elif isinstance(t, datetime):
+                return t
+            else:
+                return datetime.min
 
         sorted_sessions = sorted(
             self.sessions.values(),

@@ -108,8 +108,10 @@ class PluginExecutor:
         except PluginExecutionError:
             raise
         except Exception as exc:
-            with_fields_logger = get_logger(__name__).bind(server=server, tool=tool_name, context_id=context_id)
-            with_fields_logger.exception("plugin execution failed")
+            logger.exception(
+                "plugin execution failed",
+                extra=with_fields(server=server, tool=tool_name, context_id=context_id, exc=str(exc))
+            )
             raise PluginExecutionError(server=server, tool=tool_name, reason=str(exc), plugin_name=server) from exc
 
         status = result.get("status")
