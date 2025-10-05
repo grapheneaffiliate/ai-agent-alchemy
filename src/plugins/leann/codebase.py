@@ -68,11 +68,21 @@ def process_python_metrics(py_files: List[Path], max_content_mb: float = 0.5) ->
     import_count = 0
     async_count = 0
     content_read = 0
+    line_counts: Dict[str, int] = {}
 
     class_names: List[str] = []
     function_names: List[str] = []
 
-    for file_path in py_files[:50]:
+    # Process files in order of importance (plugins first, then other files)
+    def sort_key(file_path: Path) -> tuple:
+        # Prioritize plugin files and smaller files for more accurate metrics
+        is_plugin = 'plugin' in file_path.name.lower()
+        file_size = file_path.stat().st_size
+        return (0 if is_plugin else 1, file_size)
+
+    sorted_files = sorted(py_files, key=sort_key)
+
+    for file_path in sorted_files[:50]:
         try:
             file_size = file_path.stat().st_size
             if file_size > 50 * 1024:
@@ -83,10 +93,23 @@ def process_python_metrics(py_files: List[Path], max_content_mb: float = 0.5) ->
             content = file_path.read_text(encoding="utf-8", errors="replace")
             content_read += len(content)
 
-            func_count += content.count("def ")
-            class_count += content.count("class ")
-            async_count += content.count("async def ")
-            import_count += content.count("import ") + content.count("from ")
+            # Track effective lines per file for downstream metrics that depend on
+            # line counts (e.g., average lines per file).
+            lines = content.split('\n')
+            line_counts[str(file_path)] = len(lines)
+
+            # Count functions and classes more accurately
+            for line in lines:
+                stripped = line.strip()
+                if stripped.startswith("def "):
+                    func_count += 1
+                elif stripped.startswith("async def "):
+                    func_count += 1
+                    async_count += 1
+                elif stripped.startswith("class "):
+                    class_count += 1
+                elif stripped.startswith("import ") or stripped.startswith("from "):
+                    import_count += 1
 
             if "plugin" in file_path.name.lower():
                 plugin_count += 1
@@ -103,6 +126,7 @@ def process_python_metrics(py_files: List[Path], max_content_mb: float = 0.5) ->
         "async_count": async_count,
         "class_names": class_names,
         "function_names": function_names,
+        "line_counts": line_counts,
     }
 
 

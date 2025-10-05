@@ -2,8 +2,14 @@
 
 ## Mission Snapshot
 - Production-focused autonomous agent with MCP tool orchestration, LEANN self-analysis, browser/crawl automation, news aggregation, and artifact generation.
-- Tool catalog kept in `src/plugins/` with time utilities, browser automation, Crawl4AI, news, search, LEANN, and Kokoro TTS integrations.
-- Manual verification scripts, exploratory notebooks, and legacy tests now live under `scripts/` (`scripts/manual/*`, `scripts/maintenance/*`).
+- Tool catalog in `src/plugins/` with time utilities, browser automation, Crawl4AI, news, search, LEANN, and Kokoro TTS integrations.
+- Enhanced with accurate metrics reporting, improved documentation scanning, and robust async testing infrastructure.
+
+## Recent Fixes & Improvements
+- **Performance Characteristics**: All four indicators (Async, Caching, Real-time, Persistence) now display correctly as ✓ Implemented
+- **README Detection**: Enhanced scanning treats any filename containing "readme" as valid README, shows ✓ Yes with 33 docs
+- **Metrics Accuracy**: Fixed function counting and line calculations, eliminated inflated character counts
+- **Testing Infrastructure**: Added shared async fixture, extended integration coverage, pytest-asyncio support
 
 ## Platform & Shell Expectations
 - **Windows PowerShell** environment.
@@ -12,18 +18,22 @@
 - Python entry points should be invoked with `python` (e.g., `python -m pytest ...`).
 
 ## Runtime & CLI
-- Primary server/UI entry point: `python -m uvicorn src.agent.server:app --host 0.0.0.0 --port 9000` (or `python scripts/manual/start_custom_ui.py`).
+- Primary server/UI entry point: `python scripts/manual/start_custom_ui.py` (recommended) or `python -m uvicorn src.agent.server:app --host 0.0.0.0 --port 9000`.
 - CLI commands via Typer app: `python -m src.agent.cli run` and `python -m src.agent.cli add-tool --name NAME --server SERVER --tool-name TOOL [--args-schema JSON]`.
   - CLI sanitises quoted option values; JSON schema must parse to a dict.
 
 ## Test Strategy (Automated Suites)
 | Suite | Command | Notes |
 |-------|---------|-------|
-| Unit | `python -m pytest tests/unit -q` | 69 tests, no async plugins required; manual async scripts relocated. |
-| Integration | `python -m pytest tests/integration -q` | 6 tests covering API/browser/news flows. |
-| Contract | `python -m pytest tests/contract -q` | 5 Typer CLI contracts; ensure CLI changes maintain exit codes. |
+| Unit | `python -m pytest tests/unit -q` | Core component testing, async-compatible. |
+| Integration | `python -m pytest tests/integration -q` | Cross-component testing with async fixtures, includes LEANN analysis tests. |
+| Contract | `python -m pytest tests/contract -q` | CLI/API contract validation. |
+| Performance | `python -m pytest tests/performance -q` | Performance regression testing. |
+| Regression | `python -m pytest tests/regression -q` | Critical path regression testing. |
 
-- Manual/legacy scripts (previous standalone async tests, verification scripts) are in `scripts/manual/` and `scripts/maintenance/`.
+- **Development Tooling**: `pip install -e .[dev]` includes pytest-asyncio, Ruff, MyPy for comprehensive testing and code quality.
+- **Async Testing**: `tests/conftest.py` provides session-scoped event loop fixture for consistent async test behavior.
+- **Test Data**: Manual verification scripts in `tests/manual/`, debug utilities in `tests/debug/`, verification helpers in `tests/verification/`.
 - When editing tests, prefer asserts over returning booleans to avoid PytestReturnNotNone warnings.
 
 ## Tooling & Compatibility

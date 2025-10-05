@@ -33,31 +33,31 @@ class TestSelfDiagnostic:
     def test_extract_plugin_name_crawl4ai(self, plugin):
         """Test extracting crawl4ai plugin name from question."""
         question = "what is the crawl4ai plugin?"
-        result = plugin._extract_plugin_name(question)
+        result = plugin.intelligence.question_router._extract_plugin_name(question)
         assert result == "crawl4ai_plugin"
-    
+
     def test_extract_plugin_name_browser(self, plugin):
         """Test extracting browser plugin name."""
         question = "tell me about the browser plugin"
-        result = plugin._extract_plugin_name(question)
+        result = plugin.intelligence.question_router._extract_plugin_name(question)
         assert result == "browser"
-    
+
     def test_extract_plugin_name_none(self, plugin):
         """Test when no plugin name in question."""
         question = "what is the weather today?"
-        result = plugin._extract_plugin_name(question)
+        result = plugin.intelligence.question_router._extract_plugin_name(question)
         assert result is None
     
     def test_is_capability_question_true(self, plugin):
         """Test capability question detection - positive."""
-        assert plugin._is_capability_question("can you add plugins?") == True
-        assert plugin._is_capability_question("are you able to create tools?") == True
-        assert plugin._is_capability_question("could you extend yourself?") == True
-    
+        assert plugin.intelligence.question_router._is_capability_question("can you add plugins?") == True
+        assert plugin.intelligence.question_router._is_capability_question("are you able to create tools?") == True
+        assert plugin.intelligence.question_router._is_capability_question("could you extend yourself?") == True
+
     def test_is_capability_question_false(self, plugin):
         """Test capability question detection - negative."""
-        assert plugin._is_capability_question("what is the browser plugin?") == False
-        assert plugin._is_capability_question("assess your codebase") == False
+        assert plugin.intelligence.question_router._is_capability_question("what is the browser plugin?") == False
+        assert plugin.intelligence.question_router._is_capability_question("assess your codebase") == False
     
     def test_diagnose_web_plugins_no_execute(self, plugin, mock_base_path):
         """Test diagnosing browser plugin missing execute method."""
@@ -68,12 +68,12 @@ class BrowserPlugin:
     async def navigate(self, url):
         pass
 """)
-        
+
         result = plugin._diagnose_web_plugins(mock_base_path)
-        
-        assert "Browser plugin may not have async execute() method" in result
+
+        assert "Browser plugin may not expose an async execute() entry point" in result
         assert "Issues Found" in result
-    
+
     def test_diagnose_web_plugins_has_execute(self, plugin, mock_base_path):
         """Test diagnosing browser plugin WITH execute method."""
         # Create browser.py with execute()
@@ -85,7 +85,7 @@ class BrowserPlugin:
     async def execute(self, server, tool_name, args):
         return {"status": "success"}
 """)
-        
+
         # Create search.py with execute()
         search_file = mock_base_path / "src" / "plugins" / "search.py"
         search_file.write_text("""
@@ -95,12 +95,12 @@ class SearchPlugin:
     async def execute(self, server, tool_name, args):
         return {"status": "success"}
 """)
-        
+
         result = plugin._diagnose_web_plugins(mock_base_path)
-        
-        # Should report no issues
-        assert "✅ No obvious issues detected" in result or "Issues Found (0 total)" in result
-    
+
+        # Should report no issues since both files exist and have execute methods
+        assert "Issues Found (0 total)" in result
+
     def test_verify_browser_fix_found(self, plugin, mock_base_path):
         """Test verification when execute() method is present."""
         # Create browser.py WITH execute()
@@ -109,12 +109,11 @@ class SearchPlugin:
 async def execute(server, tool_name, args):
     return {"status": "success"}
 """)
-        
+
         result = plugin._verify_recent_fixes(mock_base_path, "verify browser fix")
-        
-        assert "✅ Fix Verified" in result or "FIXED" in result
-        assert "Execute method now present" in result or "Execute method: **Found**" in result
-    
+
+        assert "Execute entry point detected" in result
+
     def test_verify_browser_fix_not_found(self, plugin, mock_base_path):
         """Test verification when execute() method is missing."""
         # Create browser.py WITHOUT execute()
@@ -124,10 +123,10 @@ class BrowserPlugin:
     async def navigate(self, url):
         pass
 """)
-        
+
         result = plugin._verify_recent_fixes(mock_base_path, "verify browser fix")
-        
-        assert "Verification Failed" in result or "still not found" in result
+
+        assert "Execute entry point still missing" in result
     
     def test_diagnose_general_issues_healthy(self, plugin, mock_base_path):
         """Test general diagnostic with healthy system."""
@@ -139,9 +138,9 @@ class BrowserPlugin:
         (mock_base_path / "docs").mkdir(exist_ok=True)
         
         result = plugin._diagnose_general_issues(mock_base_path)
-        
-        assert "System Diagnostic Report" in result
-        assert "Python Environment" in result
+
+        assert "System Diagnostic Checklist" in result
+        assert "tools exist in config/mcp_tools.json" in result
     
     def test_explain_specific_plugin_exists(self, plugin, mock_base_path):
         """Test explaining a specific plugin that exists."""
@@ -159,16 +158,16 @@ class TestPlugin:
         pass
 ''')
         
-        result = plugin._explain_specific_plugin(mock_base_path, "test_plugin")
+        result = plugin.intelligence.summarizer.plugin_details("test_plugin", mock_base_path)
         
-        assert "Test Plugin Plugin" in result or "test_plugin" in result.lower()
-        assert "TestPlugin" in result
+        assert "Plugin: test_plugin" in result
+        assert "test_method" in result
         assert "execute" in result
     
     def test_explain_specific_plugin_not_found(self, plugin, mock_base_path):
         """Test explaining a plugin that doesn't exist."""
-        result = plugin._explain_specific_plugin(mock_base_path, "nonexistent_plugin")
-        
+        result = plugin.intelligence.summarizer.plugin_details("nonexistent_plugin")
+
         assert "not found" in result.lower()
 
 
@@ -258,9 +257,9 @@ class TestQuestionRouting:
     async def test_routing_capability_question(self, plugin, mock_base):
         """Test routing 'can you' capability questions."""
         result = await plugin._answer_question_with_text_analysis("test", "can you add plugins?")
-        
+
         assert result["status"] == "success"
-        assert "create new plugins" in result["analysis"]["overview"].lower()
+        assert "agent is fully capable" in result["analysis"]["overview"].lower()
     
     @pytest.mark.asyncio
     async def test_routing_diagnostic_question(self, plugin, mock_base):

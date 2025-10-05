@@ -2,11 +2,13 @@
 
 import pytest
 import asyncio
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch, MagicMock, AsyncMock
 from pathlib import Path
 import subprocess
 
 from src.plugins.leann_plugin import LeannPlugin
+from src.plugins.leann.index_service import LeannIndexService
+from src.plugins.leann.orchestrator import LeannAnalysisOrchestrator
 
 
 class TestLeannPlugin:
@@ -23,6 +25,8 @@ class TestLeannPlugin:
         assert hasattr(plugin, 'leann_command')
         assert plugin.leann_command == "leann"
         assert hasattr(plugin, 'available')
+        assert isinstance(plugin.index_service, LeannIndexService)
+        assert isinstance(plugin.analysis_orchestrator, LeannAnalysisOrchestrator)
 
     def test_plugin_availability_detection(self, plugin):
         """Test plugin availability detection."""
@@ -40,13 +44,10 @@ class TestLeannPlugin:
         plugin.windows_leann_available = True
         plugin.leann_command = "leann"
 
-        with patch('src.plugins.leann_plugin.os.path.isfile', return_value=True):
-            # Mock the WSL path conversion functionality
-            plugin.windows_leann_available = True
-            cmd, using_wsl = plugin._get_command_runner(["search", "test"])
+        cmd, using_wsl = plugin._get_command_runner(["search", "test"])
 
-            assert not using_wsl  # Should use Windows version
-            assert cmd[0] == "leann"
+        assert not using_wsl  # Should use Windows version
+        assert cmd[0] == "leann"
 
     @pytest.mark.asyncio
     async def test_leann_search_fallback_when_unavailable(self, plugin):
@@ -214,47 +215,33 @@ class TestLeannPlugin:
         backends2 = plugin.supported_backends
         assert backends2 is backends  # Should be same cached object
 
-    def test_fallback_method_decomposition(self, plugin):
-        """Test that the decomposed fallback method still works."""
-        # This tests integration of the helper methods
-        test_files = [Path("/fake/test.py")] * 3
+    @pytest.mark.asyncio
+    async def test_analysis_orchestrator_delegation(self, plugin):
+        """Ensure plugin methods delegate to the analysis orchestrator."""
+        plugin.analysis_orchestrator._analyze_project_structure = AsyncMock(return_value={'status': 'ok'})
 
-        # Test that helper methods exist and are callable
-        base_path = plugin._find_codebase_path()
-        assert isinstance(base_path, Path)
+        result = await plugin._analyze_project_structure()
 
-        files = plugin._collect_files_with_limits(base_path, 5)
-        assert isinstance(files, list)
-        assert len(files) <= 5
+        assert result == {'status': 'ok'}
+        plugin.analysis_orchestrator._analyze_project_structure.assert_awaited_once()
 
-    def test_coding_standards_improvements(self, plugin):
-        """Test other code quality improvements."""
-        # Test that the class uses proper naming conventions
-        assert hasattr(plugin, "_find_codebase_path")
-        assert hasattr(plugin, "_collect_files_with_limits")
-        assert hasattr(plugin, "_process_files_for_metrics")
-        assert hasattr(plugin, "_extract_class_function_names")
+    @pytest.mark.asyncio
+    async def test_index_service_delegation(self, plugin):
+        """Ensure plugin index operations delegate to the service wrapper."""
+        with patch.object(plugin.index_service, 'build_index', new_callable=AsyncMock) as mock_build:
+            mock_build.return_value = {'status': 'success'}
 
-        # Test leniency in _extract_class_function_names
-        class_names = []
-        function_names = []
-        content = """
-        class TestClass:
-            pass
+            result = await plugin.leann_build_index('demo-index', ['doc.txt'])
 
-        def test_function():
-            pass
+        assert result == {'status': 'success'}
+        mock_build.assert_awaited_once_with('demo-index', ['doc.txt'])
 
-        async def async_test():
-            pass
-        """
-
-        plugin._extract_class_function_names(content, class_names, function_names)
-
-        # Should not crash and should extract reasonable names
-        assert isinstance(class_names, list)
-        assert isinstance(function_names, list)
-
+    def test_service_layer_exposed(self, plugin):
+        """The plugin should expose the new service objects and drop old helpers."""
+        assert isinstance(plugin.index_service, LeannIndexService)
+        assert isinstance(plugin.analysis_orchestrator, LeannAnalysisOrchestrator)
+        assert not hasattr(plugin, '_collect_files_with_limits')
+        assert not hasattr(plugin, '_process_files_for_metrics')
 
 if __name__ == "__main__":
     pytest.main([__file__])
