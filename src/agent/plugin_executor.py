@@ -1,6 +1,6 @@
 """Plugin executor for calling actual tool implementations."""
 
-from typing import Any, Dict
+from typing import Any, Dict, cast
 import json
 from dataclasses import asdict
 
@@ -108,10 +108,8 @@ class PluginExecutor:
         except PluginExecutionError:
             raise
         except Exception as exc:
-            logger.exception(
-                "plugin execution failed",
-                extra=with_fields(server=server, tool=tool_name, context_id=context_id),
-            )
+            with_fields_logger = get_logger(__name__).bind(server=server, tool=tool_name, context_id=context_id)
+            with_fields_logger.exception("plugin execution failed")
             raise PluginExecutionError(server=server, tool=tool_name, reason=str(exc), plugin_name=server) from exc
 
         status = result.get("status")
@@ -268,7 +266,7 @@ class PluginExecutor:
             query = args.get('query', '')
             num_results = int(args.get('num_results', 10))
             result = await search.web_search(query, num_results)
-            return result
+            return cast(Dict[str, Any], result)
         else:
             return {"error": f"Unknown search tool: {tool_name}"}
 
@@ -302,4 +300,4 @@ class PluginExecutor:
 
         # Call the plugin's execute method directly
         result = await leann_plugin.execute('leann', tool_name, args)
-        return result
+        return cast(Dict[str, Any], result)
