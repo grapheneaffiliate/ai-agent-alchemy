@@ -1,0 +1,51 @@
+# MCP AI Agent - Code Ownership Rules
+# Global owner for entire repository
+* @grapheneaffiliate
+
+# Core Agent System
+/src/agent/ @grapheneaffiliate
+/src/agent/core.py @grapheneaffiliate
+/src/agent/cli.py @grapheneaffiliate
+/src/agent/api.py @grapheneaffiliate
+/src/agent/server.py @grapheneaffiliate
+/src/agent/web_ui.py @grapheneaffiliate
+
+# Plugin System
+/src/plugins/ @grapheneaffiliate
+/src/plugins/leann_plugin.py @grapheneaffiliate
+/src/plugins/browser.py @grapheneaffiliate
+/src/plugins/crawl4ai_plugin.py @grapheneaffiliate
+/src/plugins/news_fetch.py @grapheneaffiliate
+/src/plugins/enhanced_news.py @grapheneaffiliate
+/src/plugins/search.py @grapheneaffiliate
+/src/plugins/time_utils.py @grapheneaffiliate
+/src/plugins/kokoro_tts.py @grapheneaffiliate
+
+# LEANN Self-Improvement System
+/src/plugins/leann/ @grapheneaffiliate
+/src/plugins/leann/intelligence.py @grapheneaffiliate
+
+# Configuration and Tools
+/config/ @grapheneaffiliate
+/config/mcp_tools.json @grapheneaffiliate
+pyproject.toml @grapheneaffiliate
+
+# Test Suites
+/tests/ @grapheneaffiliate
+/tests/unit/ @grapheneaffiliate
+/tests/integration/ @grapheneaffiliate
+/tests/contract/ @grapheneaffiliate
+
+# Documentation
+/docs/ @grapheneaffiliate
+README.md @grapheneaffiliate
+CHANGELOG.md @grapheneaffiliate
+.clinerules @grapheneaffiliate
+
+# CI/CD and Scripts
+/scripts/ @grapheneaffiliate
+.github/ @grapheneaffiliate
+
+# Environment and Secrets
+.env.example @grapheneaffiliate
+.gitignore @grapheneaffiliate
