@@ -367,7 +367,7 @@ class TaskCancellationError(AsyncOperationError):
 
 
 # Error Factory Functions
-def create_error_from_exception(
+async def create_error_from_exception(
     exception: Exception,
     context: Optional[str] = None,
     **kwargs: Any

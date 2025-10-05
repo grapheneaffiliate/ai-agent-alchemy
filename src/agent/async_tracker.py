@@ -178,7 +178,7 @@ class AsyncAdoptionTracker:
         self._cache_timestamp: Optional[datetime] = None
         self._cache_ttl = timedelta(minutes=5)  # Cache for 5 minutes
 
-    def analyze_codebase(self, force_refresh: bool = False) -> AsyncAdoptionReport:
+    async def analyze_codebase(self, force_refresh: bool = False) -> AsyncAdoptionReport:
         """Analyze the codebase for async adoption metrics."""
         # Check cache
         if (not force_refresh and self._cache and self._cache_timestamp and
@@ -194,7 +194,7 @@ class AsyncAdoptionTracker:
 
         # Analyze each source path
         for source_path in self.source_paths:
-            path_functions, path_reports = self._analyze_path(Path(source_path))
+            path_functions, path_reports = await self._analyze_path(Path(source_path))
             all_functions.extend(path_functions)
 
             # Merge reports
@@ -259,7 +259,7 @@ class AsyncAdoptionTracker:
         self._record_metrics(report)
 
         logger.info(
-            f"Async adoption analysis complete: {eligible_async_percentage".1f"}% eligible functions are async",
+            f"Async adoption analysis complete: {eligible_async_percentage:.1f}% eligible functions are async",
             operation="analyze_codebase",
             extra_fields={
                 "total_functions": total_functions,
@@ -271,7 +271,7 @@ class AsyncAdoptionTracker:
 
         return report
 
-    def _analyze_path(self, path: Path) -> Tuple[List[FunctionInfo], Dict[str, Dict[str, int]]]:
+    async def _analyze_path(self, path: Path) -> Tuple[List[FunctionInfo], Dict[str, Dict[str, int]]]:
         """Analyze a single path for async functions."""
         functions = []
         file_reports = {}
@@ -421,7 +421,7 @@ class AsyncAdoptionTracker:
 async_tracker = AsyncAdoptionTracker()
 
 
-def track_async_adoption_kpi() -> None:
+async def track_async_adoption_kpi() -> None:
     """Track async adoption KPI metrics."""
     try:
         report = async_tracker.analyze_codebase()
@@ -448,8 +448,8 @@ def track_async_adoption_kpi() -> None:
         else:
             remaining = 90.0 - report.eligible_async_percentage
             logger.info(
-                f"Async adoption progress: {report.eligible_async_percentage".1f"}% "
-                f"({remaining".1f"}% remaining to reach 90% target)",
+            f"Async adoption progress: {report.eligible_async_percentage:.1f}% "
+            f"({remaining:.1f}% remaining to reach 90% target)",
                 operation="progress_update"
             )
 
@@ -460,9 +460,9 @@ def track_async_adoption_kpi() -> None:
         )
 
 
-def get_async_adoption_status() -> Dict[str, Any]:
+async def get_async_adoption_status() -> Dict[str, Any]:
     """Get current async adoption status."""
-    report = async_tracker.analyze_codebase()
+    report = await async_tracker.analyze_codebase()
 
     status = {
         "current_percentage": report.eligible_async_percentage,
@@ -493,9 +493,9 @@ def get_async_adoption_status() -> Dict[str, Any]:
 
 
 # CLI command for checking async adoption
-def print_async_adoption_report(force_refresh: bool = False) -> None:
+async def print_async_adoption_report(force_refresh: bool = False) -> None:
     """Print a human-readable async adoption report."""
-    report = async_tracker.analyze_codebase(force_refresh=force_refresh)
+    report = await async_tracker.analyze_codebase(force_refresh=force_refresh)
 
     print("🚀 Async Adoption Report")
     print("=" * 50)
@@ -506,13 +506,13 @@ def print_async_adoption_report(force_refresh: bool = False) -> None:
     print(f"  Total functions: {report.total_functions}")
     print(f"  Async functions: {report.async_functions}")
     print(f"  Sync functions: {report.sync_functions}")
-    print(f"  Overall async percentage: {report.async_percentage".1f"}%")
+    print(f"  Overall async percentage: {report.async_percentage:.1f}%")
     print()
 
     print("🎯 Eligible Functions (excluding CLI, tests, simple functions):")
     print(f"  Eligible functions: {report.eligible_functions}")
     print(f"  Eligible async functions: {report.eligible_async_functions}")
-    print(f"  Eligible async percentage: {report.eligible_async_percentage".1f"}%")
+    print(f"  Eligible async percentage: {report.eligible_async_percentage:.1f}%")
     print()
 
     if report.trend_direction:
@@ -520,7 +520,7 @@ def print_async_adoption_report(force_refresh: bool = False) -> None:
         print(f"📈 Trend: {trend_symbol} {report.trend_direction.title()}")
         if report.previous_percentage is not None:
             diff = report.eligible_async_percentage - report.previous_percentage
-            print(f"  Change since last check: {diff"+.1f"}%")
+            print(f"  Change since last check: {diff:+.1f}%")
         print()
 
     # Target status
@@ -528,7 +528,7 @@ def print_async_adoption_report(force_refresh: bool = False) -> None:
         print("✅ TARGET REACHED: 90%+ eligible functions are async!")
     else:
         remaining = 90.0 - report.eligible_async_percentage
-        print(f"🎯 Progress to 90% target: {remaining".1f"}% remaining")
+        print(f"🎯 Progress to 90% target: {remaining:.1f}% remaining")
 
     print()
 
@@ -543,7 +543,7 @@ def print_async_adoption_report(force_refresh: bool = False) -> None:
         for file_path, counts in sorted_files[:10]:
             if counts["total"] > 0:
                 async_pct = (counts["async"] / counts["total"]) * 100
-                print(f"  {async_pct"5.1f"}% - {Path(file_path).name} ({counts['async']}/{counts['total']})")
+                print(f"  {async_pct:5.1f}% - {Path(file_path).name} ({counts['async']}/{counts['total']})")
 
         print()
 

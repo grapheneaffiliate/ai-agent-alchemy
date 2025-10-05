@@ -1,4 +1,5 @@
 import typer
+import asyncio
 from typing import Dict, Any, Optional
 import json
 from .core import Agent
@@ -9,8 +10,19 @@ cli_app = typer.Typer(help="Modular CLI AI Agent with MCP Integration")
 @cli_app.command()
 def run():
     """Start interactive AI agent session."""
-    agent = Agent()
-    agent.run_sync()
+    async def _run():
+        agent = Agent()
+        try:
+            async for message in agent.run():
+                try:
+                    print(message)
+                except UnicodeEncodeError:
+                    ascii_message = message.encode("ascii", errors="ignore").decode("ascii")
+                    print(ascii_message)
+        except KeyboardInterrupt:
+            await agent.save_and_exit()
+
+    asyncio.run(_run())
 
 @cli_app.command()
 def add_tool(

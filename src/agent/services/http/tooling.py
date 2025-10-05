@@ -7,7 +7,6 @@ import json
 from datetime import datetime
 from typing import AsyncIterator, List, Optional, Tuple
 
-from ...api import AgentAPI
 from ...artifacts import ArtifactGenerator
 from ...plugin_executor import PluginExecutor
 from .models import ChatCompletionChunk, Message
@@ -15,7 +14,7 @@ from .models import ChatCompletionChunk, Message
 
 async def execute_tools_if_needed(
     message: str,
-    agent: AgentAPI,
+    agent: "AgentAPI",
     plugin_executor: PluginExecutor,
 ) -> Tuple[str, Optional[str]]:
     """Check message for tool or artifact triggers and execute accordingly."""
@@ -84,7 +83,7 @@ async def execute_tools_if_needed(
 
 async def stream_response(
     messages: List[Message],
-    agent: AgentAPI,
+    agent: "AgentAPI",
     plugin_executor: PluginExecutor,
     model: str,
     request_id: str,

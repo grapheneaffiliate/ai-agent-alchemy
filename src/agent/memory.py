@@ -12,7 +12,7 @@ class MemoryStoreFileImpl(MemoryStore):
         self.lock = Lock()
         self.load_all()
 
-    def load_all(self) -> None:
+    async def load_all(self) -> None:
         """Load all sessions from JSON file."""
         if self.path.exists():
             with self.lock:
@@ -23,7 +23,7 @@ class MemoryStoreFileImpl(MemoryStore):
                 except (json.JSONDecodeError, KeyError, ValueError):
                     self.sessions = {}
 
-    def save_all(self) -> None:
+    async def save_all(self) -> None:
         """Save all sessions to JSON file."""
         with self.lock:
             try:
@@ -32,7 +32,7 @@ class MemoryStoreFileImpl(MemoryStore):
             except OSError as e:
                 print(f"Memory persistence error: {e}")
 
-    def save_session(self, session: Session) -> None:
+    async def save_session(self, session: Session) -> None:
         super().save_session(session)
         self.save_all()
 

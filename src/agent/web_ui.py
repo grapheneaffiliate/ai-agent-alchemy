@@ -9,7 +9,14 @@ from typing import Optional, List, Tuple
 from pathlib import Path
 from .models import Session
 from .plugin_executor import PluginExecutor
-from .api import AgentAPI
+import sys
+import os
+# Ensure the src directory is in the path for correct module resolution
+src_dir = os.path.join(os.path.dirname(__file__), '..', '..')
+if src_dir not in sys.path:
+    sys.path.insert(0, src_dir)
+
+from agent.api import AgentAPI as api_module
 from .artifacts import ArtifactGenerator
 from .mcp_loader import MCPLoader
 
@@ -25,10 +32,10 @@ app.add_middleware(
 )
 
 # Global agent instance
-agent_instance: Optional[AgentAPI] = None
+agent_instance: Optional["api_module.AgentAPI"] = None
 plugin_executor: Optional[PluginExecutor] = None
 
-def get_agent() -> AgentAPI:
+def get_agent() -> "api_module.AgentAPI":
     """Get or create agent instance with MCP tools loaded."""
     global agent_instance, plugin_executor
     if agent_instance is None:
@@ -41,7 +48,7 @@ def get_agent() -> AgentAPI:
         
         # Create session and agent with system prompt
         session = Session(id="webui", history=[])
-        agent_instance = AgentAPI(session, mcp_tools=mcp_tools)
+        agent_instance = api_module(session, mcp_tools=mcp_tools)
         plugin_executor = PluginExecutor()
         
         print(f"✓ Loaded {len(mcp_tools)} MCP tools for web UI")
@@ -132,7 +139,8 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
                 
                 # Extract artifacts from response
                 # Check for Claude-style artifact format first (from system prompt)
-                print(f"🔍 DEBUG: Received artifact_html: {artifact_html is not None} (length: {len(artifact_html) if artifact_html else 0})")
+                artifact_length = len(artifact_html) if artifact_html else 0
+                print(f"🔍 DEBUG: Received artifact_html: {artifact_html is not None} (length: {artifact_length})")
                 print(f"🔍 DEBUG: Analyzing response for artifacts (length: {len(response)})")
                 print(f"🔍 DEBUG: Response preview: {response[:500]}...")
 

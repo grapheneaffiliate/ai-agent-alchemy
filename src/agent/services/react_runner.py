@@ -8,7 +8,14 @@ from ..mcp_loader import MCPLoader
 from ..memory import MemoryStoreFileImpl
 from ..plugin_executor import PluginExecutor
 from ..models import Session
-from ..api import AgentAPI
+import sys
+import os
+# Ensure the src directory is in the path for correct module resolution
+src_dir = os.path.join(os.path.dirname(__file__), '..', '..', '..')
+if src_dir not in sys.path:
+    sys.path.insert(0, src_dir)
+
+from agent.api import AgentAPI as api_module
 
 
 ExitCallback = Callable[[], Awaitable[None]]
@@ -19,7 +26,7 @@ class ReactLoopRunner:
 
     def __init__(
         self,
-        api: AgentAPI,
+        api: "api_module.AgentAPI",
         plugin_executor: PluginExecutor,
         loader: MCPLoader,
         memory_store: MemoryStoreFileImpl,

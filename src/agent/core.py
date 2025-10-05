@@ -12,7 +12,14 @@ from __future__ import annotations
 import asyncio
 from typing import AsyncGenerator, Dict, Any, List
 
-from .api import AgentAPI
+import sys
+import os
+# Ensure the src directory is in the path for correct module resolution
+src_dir = os.path.join(os.path.dirname(__file__), '..', '..')
+if src_dir not in sys.path:
+    sys.path.insert(0, src_dir)
+
+from agent.api import AgentAPI as api_module
 from .memory import MemoryStoreFileImpl
 from .mcp_loader import MCPLoader
 from .models import MCPTool
@@ -42,7 +49,7 @@ class Agent:
         self.session_id = self.session_manager.new_session_id()
         self.session = self.session_manager.load(self.session_id)
 
-        self.api = AgentAPI(self.session)
+        self.api = api_module.AgentAPI(self.session)
         self.custom_instructions = load_custom_instructions()
 
     async def execute_tools(

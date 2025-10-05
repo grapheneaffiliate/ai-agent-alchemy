@@ -1,18 +1,4 @@
-"""
-Agent API module for handling AI model interactions and response generation.
-
-Provides OpenAI-compatible API integration with system prompt injection,
-tool execution context, and session management capabilities. This module
-serves as the primary interface between the agent core and external AI models,
-handling authentication, request formatting, and response processing.
-
-Key Features:
-- OpenAI-compatible chat completion API
-- Dynamic system prompt injection with MCP tool context
-- Session management and conversation history
-- Environment-aware response generation
-- Error handling and timeout management
-"""
+"""API module for MCP AI Agent."""
 
 import os
 import json
@@ -21,8 +7,12 @@ import logging
 from dotenv import load_dotenv
 from datetime import datetime
 from typing import List, Dict, Optional
-from .models import Session
-from .system_prompt import get_system_prompt, get_mcp_tool_info, format_environment_details
+
+from . import server
+from . import models
+from .server import app
+from ..models import Session
+from ..system_prompt import get_system_prompt, get_mcp_tool_info, format_environment_details
 
 # Configure structured logging
 logger = logging.getLogger(__name__)
@@ -55,17 +45,17 @@ class AgentAPI:
             "model": self.model,
             "mcp_tools_loaded": len(self.mcp_tools)
         })
-    
+
     def _initialize_system_prompt(self) -> None:
         """Initialize the system prompt with available MCP tools."""
         # Format MCP tools for prompt injection
         tool_info = [get_mcp_tool_info(tool) for tool in self.mcp_tools]
-        
+
         # Get model configuration from environment
         company_name = os.getenv("COMPANY_NAME", "OpenAI")
         model_name = os.getenv("MODEL_NAME", "GPT")
         model_family = os.getenv("MODEL_FAMILY", "GPT")
-        
+
         self.system_prompt = get_system_prompt(
             company_name=company_name,
             model_name=model_name,
@@ -201,3 +191,5 @@ class AgentAPI:
                     "error_message": str(e)
                 })
                 raise Exception(f"Network error: {str(e)}")
+
+__all__ = ["server", "models", "app", "AgentAPI"]

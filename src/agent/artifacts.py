@@ -11,7 +11,7 @@ class ArtifactGenerator:
     """Generate HTML/SVG artifacts for Open WebUI rendering."""
     
     @staticmethod
-    def detect_artifact_request(message: str) -> Optional[str]:
+    async def detect_artifact_request(message: str) -> Optional[str]:
         """Detect if message requests an artifact and return type."""
         message_lower = message.lower()
 
@@ -47,7 +47,7 @@ class ArtifactGenerator:
         return None
     
     @staticmethod
-    def generate_news_page(news_data: Dict[str, Any]) -> str:
+    async def generate_news_page(news_data: Dict[str, Any]) -> str:
         """Generate an HTML page displaying news articles."""
         articles = news_data.get('articles', [])
         topic = news_data.get('topic', 'News')
@@ -628,7 +628,7 @@ class ArtifactGenerator:
         return formatted
 
     @staticmethod
-    def extract_artifact(response: str) -> Optional[str]:
+    async def extract_artifact(response: str) -> Optional[str]:
         """
         Extract HTML artifact from LLM response.
 
