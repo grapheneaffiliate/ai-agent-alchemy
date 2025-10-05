@@ -6,6 +6,8 @@ from .environment import LeannEnvironment, detect_environment
 from .fallback import TextFallbackSearcher
 from .intelligence import IntelligenceToolkit
 from .relationships import RelationshipAnalyzer
+from .index_service import LeannIndexService
+from .orchestrator import LeannAnalysisOrchestrator
 
 __all__ = [
     "ChangeImpactAnalyzer",
@@ -13,6 +15,8 @@ __all__ = [
     "LeannCommandRunner",
     "LeannEnvironment",
     "RelationshipAnalyzer",
+    "LeannIndexService",
+    "LeannAnalysisOrchestrator",
     "TextFallbackSearcher",
     "detect_environment",
 ]

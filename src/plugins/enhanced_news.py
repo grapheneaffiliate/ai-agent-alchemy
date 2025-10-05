@@ -25,6 +25,40 @@ async def get_enhanced_news() -> NewsAggregator:
     return _enhanced_news_instance
 
 
+class EnhancedNewsPlugin:
+    """MCP Plugin interface for enhanced news functionality."""
+
+    def __init__(self):
+        self._aggregator: Optional[NewsAggregator] = None
+
+    async def _get_aggregator(self) -> NewsAggregator:
+        """Get or create the aggregator instance."""
+        if self._aggregator is None:
+            self._aggregator = NewsAggregator()
+            await self._aggregator.initialize()
+        return self._aggregator
+
+    async def get_enhanced_news(self, args: Dict[str, Any]) -> Dict[str, Any]:
+        """Get enhanced news with semantic analysis."""
+        aggregator = await self._get_aggregator()
+        return await aggregator.get_enhanced_news(
+            topic=args.get('topic', 'ai'),
+            max_articles=args.get('max_articles', 10)
+        )
+
+    async def discover_sources(self, args: Dict[str, Any]) -> Dict[str, Any]:
+        """Discover news sources for a topic."""
+        aggregator = await self._get_aggregator()
+        sources = await aggregator.source_discovery.discover_sources(
+            topic=args.get('topic', 'ai'),
+            max_sources=args.get('max_sources', 10)
+        )
+        return {
+            "sources": [asdict(source) for source in sources],
+            "count": len(sources)
+        }
+
+
 # MCP Plugin Interface
 async def execute(server: str, tool_name: str, args: Dict[str, Any]) -> Dict[str, Any]:
     """Execute enhanced news plugin commands via MCP interface."""

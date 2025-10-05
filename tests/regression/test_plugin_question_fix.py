@@ -4,10 +4,12 @@
 import asyncio
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
+import pytest
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
 
 from plugins.leann_plugin import LeannPlugin
 
+@pytest.mark.asyncio
 async def test_plugin_question():
     """Test that plugin questions are properly answered"""
     

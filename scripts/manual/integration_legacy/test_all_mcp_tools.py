@@ -22,7 +22,7 @@ from src.plugins.browser import BrowserPlugin
 from src.plugins.news_fetch import NewsFetchPlugin
 from src.plugins.crawl4ai_plugin import Crawl4AIPlugin
 from src.plugins.search import SearchPlugin
-from src.plugins.leann_plugin import LEANNPlugin
+from src.plugins.leann_plugin import LeannPlugin
 from src.plugins.enhanced_news import EnhancedNewsPlugin
 
 class MCPToolsTester:
@@ -247,7 +247,7 @@ class MCPToolsTester:
         print("\n🧠 Testing LEANN Server...")
 
         try:
-            plugin = LEANNPlugin()
+            plugin = LeannPlugin()
             # Test analyze_codebase_intelligence
             result = await plugin.analyze_codebase_intelligence({
                 "index_name": "agent-code"

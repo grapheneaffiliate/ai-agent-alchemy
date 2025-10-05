@@ -7,11 +7,16 @@ import asyncio
 from unittest.mock import Mock, AsyncMock, patch
 import sys
 import os
+from types import SimpleNamespace
 
 # Add src to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
 
-from agent.react_loop import ToolMetrics, route_to_leann_tool
+from agent.react_loop import (
+    ToolMetrics,
+    route_to_leann_tool,
+    execute_codebase_analysis,
+)
 from agent.react_responses import (
     format_health_analysis_response,
     format_comprehensive_analysis_response,
@@ -155,6 +160,47 @@ class TestToolExecutionIntegration:
         # Verify span metadata is captured
         assert span['status'] == 'success'
         assert span['response_code'] == 200
+
+    @pytest.mark.asyncio
+    async def test_execute_codebase_analysis_success_path(self):
+        """Ensure codebase analysis aggregates async execution results."""
+        plugin_executor = SimpleNamespace()
+        plugin_executor.execute = AsyncMock(side_effect=[
+            {"status": "success", "analysis": {"summary": "great"}},
+            {"status": "success", "results": "class details"},
+            {"status": "success", "results": "api endpoints"},
+            {"status": "success", "results": "config info"},
+        ])
+
+        results = await execute_codebase_analysis("check codebase", plugin_executor)
+
+        assert len(results) == 4
+        assert any("Advanced Codebase Analysis" in chunk for chunk in results)
+        args_list = [record.args for record in plugin_executor.execute.await_args_list]
+        assert args_list == [
+            ('leann', 'analyze_codebase_intelligence', {}),
+            ('leann', 'leann_search', {'query': 'class definitions', 'top_k': 5}),
+            ('leann', 'leann_search', {'query': 'API endpoints def ', 'top_k': 5}),
+            ('leann', 'leann_search', {'query': 'configuration setup', 'top_k': 5}),
+        ]
+
+    @pytest.mark.asyncio
+    async def test_execute_codebase_analysis_handles_timeouts_and_errors(self):
+        """Verify codebase analysis gracefully handles timeouts and errors."""
+        plugin_executor = SimpleNamespace()
+        plugin_executor.execute = AsyncMock(side_effect=[
+            asyncio.TimeoutError(),
+            {"status": "error", "error": "search failed"},
+            Exception("api crash"),
+            {"status": "success", "results": "config ok"},
+        ])
+
+        results = await execute_codebase_analysis("check codebase", plugin_executor)
+
+        lowered = "\n".join(results).lower()
+        assert "timed out" in lowered
+        assert "failed" in lowered or "error" in lowered
+        assert plugin_executor.execute.await_count == 4
 
     def test_enhanced_news_components_integration(self):
         """Test enhanced news components work together."""

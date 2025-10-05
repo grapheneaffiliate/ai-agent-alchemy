@@ -92,7 +92,8 @@ async def test_enhanced_news_aggregation():
             print(f"❌ Enhanced news test failed: {result.get('error')}")
             return False
 
-        print("✅ Enhanced news aggregation successful!"        print(f"  - Topic: {result.get('topic')}")
+        print("✅ Enhanced news aggregation successful!")
+        print(f"  - Topic: {result.get('topic')}")
         print(f"  - Articles found: {result.get('articles_found')}")
         print(f"  - Sources used: {result.get('sources_used')}")
         print(f"  - Method: {result.get('method')}")
@@ -100,8 +101,8 @@ async def test_enhanced_news_aggregation():
         # Show sample articles
         articles = result.get("articles", [])
         if articles:
-            print("
-📄 Sample articles:"            for i, article in enumerate(articles[:3]):
+            print("\n📄 Sample articles:")
+            for i, article in enumerate(articles[:3]):
                 print(f"  {i+1}. {article.get('headline', 'No title')}")
                 print(f"     Source: {article.get('source', {}).get('name', 'Unknown')}")
                 print(f"     Credibility: {article.get('credibility_score', 0):.2f}")
