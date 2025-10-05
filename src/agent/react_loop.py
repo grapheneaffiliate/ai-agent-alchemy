@@ -8,11 +8,7 @@ import logging
 from typing import List, Tuple, Dict, Any, Optional
 from collections import defaultdict
 from .artifacts import ArtifactGenerator
-try:
-    from ..plugins.search import SearchPlugin  # For citation post-processing
-except ImportError:
-    # Fallback for when running as a module
-    from src.plugins.search import SearchPlugin
+from src.plugins.search import SearchPlugin  # For citation post-processing
 from .react_responses import (
     format_health_analysis_response,
     format_comprehensive_analysis_response,

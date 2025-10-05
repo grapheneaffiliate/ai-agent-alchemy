@@ -1,0 +1,367 @@
+{
+  "agent_metrics": [
+    {
+      "path": "src/agent/api.py",
+      "sloc": 162,
+      "total_lines": 203
+    },
+    {
+      "path": "src/agent/artifacts.py",
+      "sloc": 579,
+      "total_lines": 710
+    },
+    {
+      "path": "src/agent/cli.py",
+      "sloc": 46,
+      "total_lines": 50
+    },
+    {
+      "path": "src/agent/core.py",
+      "sloc": 191,
+      "total_lines": 247
+    },
+    {
+      "path": "src/agent/mcp_loader.py",
+      "sloc": 59,
+      "total_lines": 69
+    },
+    {
+      "path": "src/agent/memory.py",
+      "sloc": 72,
+      "total_lines": 86
+    },
+    {
+      "path": "src/agent/models.py",
+      "sloc": 173,
+      "total_lines": 219
+    },
+    {
+      "path": "src/agent/plugin_executor.py",
+      "sloc": 215,
+      "total_lines": 260
+    },
+    {
+      "path": "src/agent/react_loop.py",
+      "sloc": 662,
+      "total_lines": 852
+    },
+    {
+      "path": "src/agent/react_responses.py",
+      "sloc": 200,
+      "total_lines": 241
+    },
+    {
+      "path": "src/agent/server.py",
+      "sloc": 311,
+      "total_lines": 402
+    },
+    {
+      "path": "src/agent/system_prompt.py",
+      "sloc": 201,
+      "total_lines": 252
+    },
+    {
+      "path": "src/agent/web_ui.py",
+      "sloc": 186,
+      "total_lines": 262
+    }
+  ],
+  "dependency_graph": {
+    "agent.api": [
+      "agent.models",
+      "agent.system_prompt"
+    ],
+    "agent.cli": [
+      "agent.core",
+      "agent.mcp_loader"
+    ],
+    "agent.core": [
+      "agent.api",
+      "agent.mcp_loader",
+      "agent.memory",
+      "agent.models",
+      "agent.plugin_executor",
+      "agent.react_loop"
+    ],
+    "agent.mcp_loader": [
+      "agent.models"
+    ],
+    "agent.memory": [
+      "agent.models"
+    ],
+    "agent.react_loop": [
+      "agent.artifacts",
+      "agent.react_responses",
+      "plugins.search"
+    ],
+    "agent.server": [
+      "agent.api",
+      "agent.artifacts",
+      "agent.core",
+      "agent.models",
+      "agent.plugin_executor"
+    ],
+    "agent.web_ui": [
+      "agent.api",
+      "agent.artifacts",
+      "agent.mcp_loader",
+      "agent.models",
+      "agent.plugin_executor",
+      "agent.react_loop",
+      "plugins.kokoro_tts"
+    ],
+    "plugins.analysis": [
+      "plugins.search"
+    ],
+    "plugins.browser.__init__": [
+      "plugins.browser.session"
+    ],
+    "plugins.browser.capabilities.__init__": [
+      "plugins.browser.capabilities.content",
+      "plugins.browser.capabilities.interaction",
+      "plugins.browser.capabilities.navigation",
+      "plugins.browser.capabilities.news"
+    ],
+    "plugins.browser.session": [
+      "plugins.browser.runtime"
+    ],
+    "plugins.enhanced_news": [
+      "plugins.enhanced_news_components"
+    ],
+    "plugins.enhanced_news_components": [
+      "plugins.news_fetch",
+      "plugins.search"
+    ],
+    "plugins.leann.__init__": [
+      "plugins.leann.change_impact",
+      "plugins.leann.command_runner",
+      "plugins.leann.environment",
+      "plugins.leann.fallback",
+      "plugins.leann.index_service",
+      "plugins.leann.intelligence",
+      "plugins.leann.orchestrator",
+      "plugins.leann.relationships"
+    ],
+    "plugins.leann.command_runner": [
+      "plugins.leann.codebase",
+      "plugins.leann.environment"
+    ],
+    "plugins.leann.index_service": [
+      "plugins.leann.command_runner",
+      "plugins.leann.environment",
+      "plugins.leann.fallback"
+    ],
+    "plugins.leann.intelligence": [
+      "plugins.leann.codebase"
+    ],
+    "plugins.leann.orchestrator": [
+      "plugins.leann.codebase",
+      "plugins.leann.index_service",
+      "plugins.leann.intelligence"
+    ],
+    "plugins.leann.strategies.__init__": [
+      "plugins.leann.strategies.diagnostics",
+      "plugins.leann.strategies.question_router",
+      "plugins.leann.strategies.summaries"
+    ],
+    "plugins.leann.strategies.summaries": [
+      "plugins.leann.codebase"
+    ],
+    "plugins.leann_plugin": [
+      "plugins.leann.codebase",
+      "plugins.leann.index_service",
+      "plugins.leann.orchestrator"
+    ],
+    "plugins.news.__init__": [
+      "plugins.news.intelligence",
+      "plugins.news.renderer",
+      "plugins.news.sources"
+    ],
+    "plugins.news.intelligence": [
+      "plugins.news.sources"
+    ],
+    "plugins.news.renderer": [
+      "plugins.news.intelligence",
+      "plugins.news.sources"
+    ]
+  },
+  "edge_count": 67,
+  "module_count": 48,
+  "plugin_metrics": [
+    {
+      "path": "src/plugins/analysis.py",
+      "sloc": 64,
+      "total_lines": 87
+    },
+    {
+      "path": "src/plugins/browser/__init__.py",
+      "sloc": 99,
+      "total_lines": 120
+    },
+    {
+      "path": "src/plugins/browser/capabilities/__init__.py",
+      "sloc": 11,
+      "total_lines": 13
+    },
+    {
+      "path": "src/plugins/browser/capabilities/content.py",
+      "sloc": 103,
+      "total_lines": 125
+    },
+    {
+      "path": "src/plugins/browser/capabilities/interaction.py",
+      "sloc": 20,
+      "total_lines": 28
+    },
+    {
+      "path": "src/plugins/browser/capabilities/navigation.py",
+      "sloc": 69,
+      "total_lines": 86
+    },
+    {
+      "path": "src/plugins/browser/capabilities/news.py",
+      "sloc": 84,
+      "total_lines": 103
+    },
+    {
+      "path": "src/plugins/browser/runtime.py",
+      "sloc": 212,
+      "total_lines": 246
+    },
+    {
+      "path": "src/plugins/browser/session.py",
+      "sloc": 156,
+      "total_lines": 182
+    },
+    {
+      "path": "src/plugins/crawl4ai_plugin.py",
+      "sloc": 280,
+      "total_lines": 380
+    },
+    {
+      "path": "src/plugins/enhanced_news.py",
+      "sloc": 69,
+      "total_lines": 90
+    },
+    {
+      "path": "src/plugins/enhanced_news_components.py",
+      "sloc": 155,
+      "total_lines": 532
+    },
+    {
+      "path": "src/plugins/kokoro_tts.py",
+      "sloc": 72,
+      "total_lines": 92
+    },
+    {
+      "path": "src/plugins/leann/__init__.py",
+      "sloc": 20,
+      "total_lines": 22
+    },
+    {
+      "path": "src/plugins/leann/change_impact.py",
+      "sloc": 55,
+      "total_lines": 70
+    },
+    {
+      "path": "src/plugins/leann/codebase.py",
+      "sloc": 183,
+      "total_lines": 224
+    },
+    {
+      "path": "src/plugins/leann/command_runner.py",
+      "sloc": 72,
+      "total_lines": 86
+    },
+    {
+      "path": "src/plugins/leann/environment.py",
+      "sloc": 73,
+      "total_lines": 91
+    },
+    {
+      "path": "src/plugins/leann/fallback.py",
+      "sloc": 89,
+      "total_lines": 103
+    },
+    {
+      "path": "src/plugins/leann/index_service.py",
+      "sloc": 132,
+      "total_lines": 153
+    },
+    {
+      "path": "src/plugins/leann/intelligence.py",
+      "sloc": 157,
+      "total_lines": 202
+    },
+    {
+      "path": "src/plugins/leann/orchestrator.py",
+      "sloc": 683,
+      "total_lines": 880
+    },
+    {
+      "path": "src/plugins/leann/relationships.py",
+      "sloc": 148,
+      "total_lines": 172
+    },
+    {
+      "path": "src/plugins/leann/strategies/__init__.py",
+      "sloc": 11,
+      "total_lines": 13
+    },
+    {
+      "path": "src/plugins/leann/strategies/diagnostics.py",
+      "sloc": 123,
+      "total_lines": 143
+    },
+    {
+      "path": "src/plugins/leann/strategies/question_router.py",
+      "sloc": 82,
+      "total_lines": 102
+    },
+    {
+      "path": "src/plugins/leann/strategies/summaries.py",
+      "sloc": 195,
+      "total_lines": 236
+    },
+    {
+      "path": "src/plugins/leann_plugin.py",
+      "sloc": 305,
+      "total_lines": 391
+    },
+    {
+      "path": "src/plugins/news/__init__.py",
+      "sloc": 12,
+      "total_lines": 15
+    },
+    {
+      "path": "src/plugins/news/intelligence.py",
+      "sloc": 152,
+      "total_lines": 176
+    },
+    {
+      "path": "src/plugins/news/renderer.py",
+      "sloc": 450,
+      "total_lines": 468
+    },
+    {
+      "path": "src/plugins/news/sources.py",
+      "sloc": 168,
+      "total_lines": 195
+    },
+    {
+      "path": "src/plugins/news_fetch.py",
+      "sloc": 300,
+      "total_lines": 368
+    },
+    {
+      "path": "src/plugins/search.py",
+      "sloc": 106,
+      "total_lines": 137
+    },
+    {
+      "path": "src/plugins/time_utils.py",
+      "sloc": 96,
+      "total_lines": 122
+    }
+  ]
+}

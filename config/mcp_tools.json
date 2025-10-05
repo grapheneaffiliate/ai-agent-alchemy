@@ -19,7 +19,9 @@
                 "description": "Optional task progress checklist"
               }
             },
-            "required": ["path"]
+            "required": [
+              "path"
+            ]
           }
         },
         {
@@ -68,7 +70,9 @@
                 "description": "Optional task progress"
               }
             },
-            "required": ["command"]
+            "required": [
+              "command"
+            ]
           }
         }
       ]
@@ -225,11 +229,16 @@
               },
               "docs": {
                 "type": "array",
-                "items": {"type": "string"},
+                "items": {
+                  "type": "string"
+                },
                 "description": "List of document paths to index"
               }
             },
-            "required": ["index_name", "docs"]
+            "required": [
+              "index_name",
+              "docs"
+            ]
           }
         },
         {
@@ -253,7 +262,10 @@
                 "default": 5
               }
             },
-            "required": ["index_name", "query"]
+            "required": [
+              "index_name",
+              "query"
+            ]
           }
         },
         {
@@ -277,7 +289,10 @@
                 "default": 3
               }
             },
-            "required": ["index_name", "question"]
+            "required": [
+              "index_name",
+              "question"
+            ]
           }
         },
         {
@@ -376,5 +391,16 @@
         }
       ]
     }
-  ]
+  ],
+  "plugin_owners": {
+    "analysis": "@grapheneaffiliate",
+    "crawl4ai_plugin": "@grapheneaffiliate",
+    "enhanced_news": "@grapheneaffiliate",
+    "enhanced_news_components": "@grapheneaffiliate",
+    "kokoro_tts": "@grapheneaffiliate",
+    "leann_plugin": "@grapheneaffiliate",
+    "news_fetch": "@grapheneaffiliate",
+    "search": "@grapheneaffiliate",
+    "time_utils": "@grapheneaffiliate"
+  }
 }

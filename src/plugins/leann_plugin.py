@@ -324,28 +324,55 @@ class LeannPlugin:
             return await self.analyze_code_relationships(args.get("index_name", "agent-code"))
         if tool_name == "predict_change_impact":
             return await self.predict_change_impact(args.get("modified_files", []), args.get("index_name", "agent-code"))
+
         if tool_name == "generate_codebase_enhancement_plan":
-            # Use the enhanced intelligence toolkit for specific improvement recommendations
+            index_name = args.get("index_name", "agent-code")
+            # Prefer orchestrator-driven plan for richer insights
             try:
-                # Use the intelligence toolkit directly for "what would you change" type questions
+                plan_result = await self._generate_codebase_enhancement_plan(index_name)
+            except Exception as orchestrator_error:
+                plan_result = {"status": "error", "error": str(orchestrator_error)}
+
+            if plan_result.get("status") == "success" and plan_result.get("enhancement_plan"):
+                # Optionally enrich with intelligence insights
+                overview = None
+                try:
+                    intelligence_result = await self.intelligence.answer_question(
+                        index_name,
+                        "what would you change to improve this codebase and what specific recommendations do you have?"
+                    )
+                except Exception:
+                    intelligence_result = None
+
+                if intelligence_result and intelligence_result.get("status") == "success":
+                    overview = intelligence_result.get("analysis", {}).get("overview")
+
+                if overview:
+                    plan_text = plan_result["enhancement_plan"].rstrip()
+                    if plan_text:
+                        plan_text += "\n\n## Intelligence Insights\n"
+                    plan_result["enhancement_plan"] = plan_text + overview.strip()
+
+                return plan_result
+
+            # Orchestrator fallback to legacy behaviour
+            try:
                 enhancement_result = await self.intelligence.answer_question(
-                    args.get("index_name", "agent-code"), 
+                    index_name,
                     "what would you change to improve this codebase and what specific recommendations do you have?"
                 )
                 if enhancement_result.get("status") == "success":
-                    # Extract the overview from the intelligence toolkit response
                     overview = enhancement_result.get("analysis", {}).get("overview", "")
                     return {"status": "success", "enhancement_plan": overview}
-                else:
-                    # Fallback to comprehensive diagnosis if intelligence toolkit fails
-                    diagnosis = await self._comprehensive_self_diagnosis(args.get("index_name", "agent-code"))
-                    if diagnosis.get("status") == "success":
-                        enhancement_plan = await self._create_dynamic_enhancement_plan(diagnosis["analysis"])
-                        return {"status": "success", "enhancement_plan": enhancement_plan}
-                    else:
-                        return {"status": "error", "error": diagnosis.get("error", "Diagnosis failed")}
-            except Exception as e:
-                return {"status": "error", "error": f"Enhancement plan generation failed: {str(e)}"}
+
+                diagnosis = await self._comprehensive_self_diagnosis(index_name)
+                if diagnosis.get("status") == "success":
+                    enhancement_plan = await self._create_dynamic_enhancement_plan(diagnosis["analysis"])
+                    return {"status": "success", "enhancement_plan": enhancement_plan}
+
+                return {"status": "error", "error": diagnosis.get("error", "Diagnosis failed")}
+            except Exception as exc:
+                return {"status": "error", "error": f"Enhancement plan generation failed: {exc}"}
 
         if tool_name == "comprehensive_self_improvement_analysis":
             # Return a comprehensive codebase analysis instead of enhancement plan

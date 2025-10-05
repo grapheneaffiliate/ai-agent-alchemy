@@ -24,6 +24,12 @@ All notable changes to the MCP AI Agent will be documented in this file.
 - **Impact**: All async tests now execute properly with pytest-asyncio
 - **Files**: `tests/regression/test_plugin_question_fix.py:1-10`
 
+#### LEANN Enhancement Plan Routing ✅
+- **Improved**: `generate_codebase_enhancement_plan` now prefers the orchestrator's dynamic roadmap before falling back to legacy flows
+- **Enhanced**: Appends intelligence toolkit insights when available so recommendations include concrete follow-up actions
+- **Impact**: Custom UI `improve yourself` command delivers actionable multi-stage plans instead of a single generic message
+- **Files**: `src/plugins/leann_plugin.py:328-366`
+
 ### Test Results
 - **89 tests passed, 1 skipped** - All tests running cleanly without warnings
 - **pytest-asyncio properly configured** with session-scoped loop management
