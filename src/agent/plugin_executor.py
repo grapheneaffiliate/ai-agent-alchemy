@@ -112,7 +112,7 @@ class PluginExecutor:
                 "plugin execution failed",
                 extra=with_fields(server=server, tool=tool_name, context_id=context_id),
             )
-            raise PluginExecutionError(server=server, tool=tool_name, reason=str(exc), context_id=context_id) from exc
+            raise PluginExecutionError(server=server, tool=tool_name, reason=str(exc), plugin_name=server) from exc
 
         status = result.get("status")
         if status != "success":
@@ -121,7 +121,7 @@ class PluginExecutor:
                 "plugin returned non-success status",
                 extra=with_fields(server=server, tool=tool_name, context_id=context_id, status=status, reason=reason),
             )
-            raise PluginExecutionError(server=server, tool=tool_name, reason=reason, context_id=context_id)
+            raise PluginExecutionError(server=server, tool=tool_name, reason=reason, plugin_name=server)
 
         logger.info(
             "plugin executed",
